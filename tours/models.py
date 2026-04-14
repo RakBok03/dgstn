@@ -14,7 +14,6 @@ class TourPhoto(models.Model):
     image = models.ImageField("Доп. фото", upload_to='tours/gallery/')
 
 class Feedback(models.Model):
-    # ВОТ ЭТОЙ СТРОЧКИ НЕ ХВАТАЛО:
     tour = models.ForeignKey(
         Tour, 
         on_delete=models.SET_NULL, 
@@ -28,7 +27,6 @@ class Feedback(models.Model):
     comment = models.TextField("Пожелания", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # Добавим это для красоты в админке
     class Meta:
         verbose_name = "Отклик"
         verbose_name_plural = "Отклики"
@@ -47,3 +45,25 @@ class HomePageSettings(models.Model):
 
     def __str__(self):
         return "Настройки Главной страницы"
+
+# --- НОВАЯ МОДЕЛЬ ДЛЯ СЕТКИ ПРИВЕТСТВИЯ ---
+
+class WelcomeBlock(models.Model):
+    TYPES = (
+        ('video', 'Видео'),
+        ('photo', 'Фото'),
+    )
+    title = models.CharField("Заголовок (напр. 14 коренных)", max_length=100, blank=True)
+    subtitle = models.CharField("Подзаголовок (напр. народов)", max_length=200, blank=True)
+    file = models.FileField("Файл (Медиа)", upload_to='welcome/')
+    media_type = models.CharField("Тип контента", max_length=10, choices=TYPES, default='photo')
+    is_large = models.BooleanField("Большая карточка (на 2 строки)", default=False)
+    order = models.PositiveIntegerField("Порядок отображения", default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Блок приветствия"
+        verbose_name_plural = "Блоки приветствия"
+
+    def __str__(self):
+        return f"{self.title or 'Медиа-блок'} ({self.get_media_type_display()})"
