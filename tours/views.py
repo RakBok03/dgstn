@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
-from .models import Tour, Feedback, HomePageSettings
+from .models import Tour, Feedback, HomePageSettings, WelcomeBlock
 from .services import send_tg_notification
 
 def index(request):
     """Главная страница с турами и настройками."""
+    tours = Tour.objects.all()
+    # Загружаем блоки в том порядке, который ты указал в админке
+    welcome_blocks = WelcomeBlock.objects.all().order_by('order')
     # Берем последние 3 тура
     tours = Tour.objects.all().order_by('-id')[:3]
     
@@ -14,7 +17,8 @@ def index(request):
         
     return render(request, 'index.html', {
         'tours': tours,
-        'settings': settings
+        'settings': settings,
+        'welcome_blocks': welcome_blocks,
     })
 
 def tour_list(request):

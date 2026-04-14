@@ -25,6 +25,38 @@
     </div>
 </div>
 
+{% if welcome_blocks %}
+<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="mb-10">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Почему выбирают нас</h2>
+        <p class="text-slate-500 mt-2">Коротко о главном в наших путешествиях</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:auto-rows-[200px]">
+        {% for block in welcome_blocks %}
+        <div class="relative rounded-3xl overflow-hidden group shadow-sm 
+            {% if block.is_large %} col-span-2 row-span-2 md:h-full h-[300px] {% else %} col-span-1 row-span-1 h-[150px] md:h-full {% endif %}">
+            
+            {% if block.media_type == 'video' %}
+                <video src="{{ block.file.url }}" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"></video>
+            {% else %}
+                <img src="{{ block.file.url }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            {% endif %}
+
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-6">
+                <h3 class="text-white font-bold {% if block.is_large %} text-2xl md:text-4xl {% else %} text-sm md:text-xl {% endif %}">
+                    {{ block.title }}
+                </h3>
+                <p class="text-white/80 {% if block.is_large %} text-base md:text-lg {% else %} text-[10px] md:text-sm {% endif %}">
+                    {{ block.subtitle }}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 <section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-12 gap-4">
         <div>
@@ -37,7 +69,6 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
         {% for tour in tours %}
         <div x-data="{ open: false }" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-slate-100 flex flex-col">
-            
             <div class="relative h-60 md:h-72 overflow-hidden">
                 {% if tour.main_image %}
                     <img src="{{ tour.main_image.url }}" alt="{{ tour.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -74,49 +105,23 @@
                 x-cloak>
                 
                 <div @click.away="open = false" class="bg-white w-full max-w-3xl max-h-[90vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col text-left relative">
-                    
                     <button @click="open = false" class="absolute top-4 right-4 md:top-6 md:right-6 z-[110] bg-black/20 backdrop-blur-xl text-white p-2 rounded-full hover:bg-black/40 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-
                     <div class="overflow-y-auto no-scrollbar">
                         <div class="relative h-64 md:h-80 shrink-0">
                             {% if tour.main_image %}
                                 <img src="{{ tour.main_image.url }}" class="w-full h-full object-cover">
                             {% endif %}
                         </div>
-
                         <div class="p-6 md:p-10">
                             <h2 class="text-2xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{{ tour.title }}</h2>
                             <div class="prose prose-slate max-w-none text-slate-600 text-base md:text-lg leading-relaxed">
                                 <p class="whitespace-pre-line">{{ tour.description }}</p>
                             </div>
-
-                            {% if tour.photos.all %}
-                            <div class="mt-8 md:mt-10">
-                                <h4 class="text-xs md:text-sm uppercase tracking-widest font-bold text-slate-400 mb-4">Галерея тура</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {% for photo in tour.photos.all %}
-                                        <div class="aspect-square rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                                            <img src="{{ photo.image.url }}" class="w-full h-full object-cover hover:scale-110 transition duration-500">
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
                         </div>
-                    </div>
-
-                    <div class="p-6 md:p-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center bg-slate-50 gap-4">
-                        <div class="text-center sm:text-left">
-                            <p class="text-slate-400 text-xs md:text-sm">Цена за человека</p>
-                            <span class="text-2xl md:text-3xl font-black text-slate-900">{{ tour.price }} ₽</span>
-                        </div>
-                        <a href="/feedback/?tour_id={{ tour.id }}" class="w-full sm:w-auto bg-emerald-600 text-white px-8 md:px-12 py-4 md:py-5 rounded-xl md:rounded-[1.25rem] font-black hover:bg-emerald-700 transition shadow-xl shadow-emerald-200 text-center uppercase tracking-widest text-xs md:text-sm">
-                            Забронировать тур
-                        </a>
                     </div>
                 </div>
             </div>
