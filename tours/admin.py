@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tour, TourPhoto, Feedback, HomePageSettings
+from .models import Tour, TourPhoto, Feedback, HomePageSettings, WelcomeBlock
 
 class TourPhotoInline(admin.TabularInline):
     model = TourPhoto
@@ -30,3 +30,8 @@ class HomePageSettingsAdmin(admin.ModelAdmin):
         if HomePageSettings.objects.exists():
             return False
         return True
+    
+@admin.register(WelcomeBlock)
+class WelcomeBlockAdmin(admin.ModelAdmin):
+    list_display = ('title', 'media_type', 'is_large', 'order')
+    list_editable = ('is_large', 'order')
