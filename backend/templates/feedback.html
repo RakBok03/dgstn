@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-20">
+    <h2 class="text-3xl font-bold mb-2">Оставить заявку</h2>
+    <p class="text-slate-500 mb-10">Заполните форму, и мы свяжемся с вами в ближайшее время.</p>
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Выберите тур</label>
+            <select name="tour_id" 
+                    class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white appearance-none cursor-pointer">
+                <option value="">Просто консультация</option>
+                {% for tour in tours %}
+                    <option value="{{ tour.id }}" {% if selected_tour.id == tour.id %}selected{% endif %}>
+                        {{ tour.title }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Ваше имя</label>
+            <input type="text" name="name" required placeholder="Введите имя"
+                class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-700">Телефон</label>
+                <input type="text" name="phone" required placeholder="+7 (999) 000-00-00"
+                    class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-700">Желаемая дата</label>
+                <input type="date" name="date" required
+                    class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Ваши пожелания</label>
+            <textarea name="comment" rows="4"
+                    class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none"></textarea>
+        </div>
+
+        <button type="submit" 
+                class="w-full bg-[#0f172a] text-white py-5 rounded-2xl font-bold hover:bg-emerald-600 transition shadow-lg">
+            Отправить отклик
+        </button>
+    </form>
+</div>
+{% endblock %}

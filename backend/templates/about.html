@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="bg-white">
+    <section class="relative py-20 bg-slate-50 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="max-w-3xl">
+                <span class="text-emerald-600 font-bold tracking-widest uppercase text-sm">О нашем крае</span>
+                <h1 class="text-5xl md:text-6xl font-black text-slate-900 mt-4 mb-8 leading-tight">
+                    Показываем Дагестан <br>
+                    <span class="text-emerald-500">глазами влюбленных</span> в него людей.
+                </h1>
+                <p class="text-xl text-slate-600 leading-relaxed">
+                    Дагестан — это величественная «Страна гор» и «жемчужина Кавказа», где лазурные волны Каспия встречаются с неприступными скалами. Мы здесь, чтобы вы влюбились в этот край так же, как и мы.
+                </p>
+            </div>
+        </div>
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-emerald-50 opacity-50 -skew-x-12 transform translate-x-20"></div>
+    </section>
+
+    <section class="py-24 max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            
+            <div class="space-y-8">
+                <h2 class="text-4xl font-black text-slate-900 leading-tight">Край контрастов и <br><span class="text-emerald-500">древней истории</span></h2>
+                <div class="prose prose-slate text-lg text-slate-600 leading-relaxed space-y-6">
+                    <p>
+                        Вас ждет древний <strong>Дербент</strong> с его легендарной цитаделью Нарын-Кала, величественный <strong>Тарки-Тау</strong>, откуда открывается панорама на Махачкалу и Каспийск, и старинный поселок Тарки — сердце былого Таркинского Кумыкского Ханства.
+                    </p>
+                    <p>
+                        Мы проедем через глубочайший <strong>Сулакский каньон</strong>, поднимемся на поющий бархан Сарыкум, заглянем в аулы-призраки (Гамсутль) и прогуляемся по реликтовым Самурским лесам. Это земля бушующих водопадов и рек, рожденных на вершинах гор.
+                    </p>
+                    <div class="bg-slate-50 p-8 rounded-[2rem] border-l-4 border-emerald-500">
+                        <p class="italic m-0">"Дагестан богат термальными источниками — «горячками». Это природная лечебница, где минеральная вода помогает восстановить силы после горных походов."</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-xl space-y-8">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-4">Многонациональная мозаика</h3>
+                    <p class="text-slate-600 leading-relaxed mb-6">
+                        Это самый многонациональный регион России. Здесь живут 14 коренных народов и более 100 этнических групп. 
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
+                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">Аварцы 30%</span>
+                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">Даргинцы 17%</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Кумыки 16%</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Лезгины 13%</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Лакцы 5%</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Табасараны 4%</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4 pt-6 border-t border-slate-50">
+                    <h3 class="text-2xl font-black text-slate-900">Гостеприимство и язык</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        В древности <strong>Кумыкский язык</strong> был языком межнационального общения и торговли. Сегодня эта традиция единства сохраняется в каждом доме.
+                    </p>
+                    <p class="text-slate-600 leading-relaxed">
+                        Для дагестанца гость — высший почет. Вы попробуете уникальные блюда, приготовленные с душой, где каждая хозяйка вкладывает в рецепт многовековую историю своего народа.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Аутентичность</h3>
+                <p class="text-slate-500 leading-relaxed">Мы не просто возим по "попсовым" местам. Мы заезжаем в гости к местным жителям и знакомим с реальной жизнью гор.</p>
+            </div>
+
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Душевность</h3>
+                <p class="text-slate-500 leading-relaxed">Для нас вы не клиенты, а гости. Мы только открываемся, поэтому вкладываем максимум энергии в каждого нашего путешественника.</p>
+            </div>
+
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Безопасность</h3>
+                <p class="text-slate-500 leading-relaxed">Мы тщательно проверяем маршруты и автомобили перед каждым выездом. Ваше спокойствие — наш приоритет.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 pb-24 mt-12">
+        <div class="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-center text-white relative overflow-hidden shadow-2xl">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8 relative z-10">Готовы увидеть это своими глазами?</h2>
+            <p class="text-slate-400 mb-12 max-w-xl mx-auto relative z-10">Оставьте заявку, и мы организуем для вас самое теплое и запоминающееся путешествие.</p>
+            <a href="/feedback/" class="inline-block bg-emerald-500 text-white px-12 py-5 rounded-2xl font-bold hover:bg-emerald-600 transition relative z-10 uppercase tracking-widest text-sm">
+                Забронировать тур
+            </a>
+            <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        </div>
+    </section>
+</main>
+{% endblock %}
