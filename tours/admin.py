@@ -12,9 +12,9 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Tour)
 class TourAdmin(admin.ModelAdmin):
     inlines = [TourPhotoInline]
-    list_display = ('title', 'category', 'price')
-    list_filter = ('category',)
-    # Добавляем наше новое действие в список доступных
+    list_display = ('title', 'category', 'price', 'is_group_tour')
+    list_editable = ('is_group_tour',)
+    list_filter = ('category', 'is_group_tour')
     actions = ['duplicate_tours']
 
     @admin.display(description="Дублировать выбранные туры")

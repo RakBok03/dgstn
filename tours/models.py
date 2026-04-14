@@ -15,6 +15,7 @@ class Tour(models.Model):
     title = models.CharField("Название тура", max_length=200)
     description = models.TextField("Описание")
     price = models.IntegerField("Цена (руб.)")
+    is_group_tour = models.BooleanField("Групповой тур?", default=False)
     main_image = models.ImageField("Главное фото", upload_to='tours/')
     category = models.ForeignKey(
         Category, 
