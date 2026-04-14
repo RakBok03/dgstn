@@ -1,10 +1,29 @@
 from django.db import models
 
+class Category(models.Model):
+    name = models.CharField("Название категории", max_length=100)
+    slug = models.SlugField("Слаг (для URL)", unique=True)
+
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
+    def __str__(self):
+        return self.name
+
 class Tour(models.Model):
     title = models.CharField("Название тура", max_length=200)
     description = models.TextField("Описание")
     price = models.IntegerField("Цена (руб.)")
     main_image = models.ImageField("Главное фото", upload_to='tours/')
+    category = models.ForeignKey(
+        Category, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='tours',
+        verbose_name="Категория"
+    )
 
     def __str__(self):
         return self.title
@@ -45,8 +64,6 @@ class HomePageSettings(models.Model):
 
     def __str__(self):
         return "Настройки Главной страницы"
-
-# --- НОВАЯ МОДЕЛЬ ДЛЯ СЕТКИ ПРИВЕТСТВИЯ ---
 
 class WelcomeBlock(models.Model):
     TYPES = (

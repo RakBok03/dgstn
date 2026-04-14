@@ -1,16 +1,11 @@
 from django.shortcuts import render, redirect
-from .models import Tour, Feedback, HomePageSettings, WelcomeBlock
+from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category
 from .services import send_tg_notification
 
 def index(request):
     """Главная страница с турами и настройками."""
-    tours = Tour.objects.all()
-    # Загружаем блоки в том порядке, который ты указал в админке
     welcome_blocks = WelcomeBlock.objects.all().order_by('order')
-    # Берем последние 3 тура
     tours = Tour.objects.all().order_by('-id')[:3]
-    
-    # Берем настройки главной (или создаем пустые, если их нет)
     settings = HomePageSettings.objects.first()
     if not settings:
         settings = HomePageSettings.objects.create()
@@ -22,19 +17,27 @@ def index(request):
     })
 
 def tour_list(request):
-    """Страница со списком всех туров."""
-    tours = Tour.objects.all()
-    return render(request, 'tours.html', {'tours': tours})
+    """Страница со списком всех туров с фильтрацией."""
+    category_slug = request.GET.get('category')
+    categories = Category.objects.all()
+    
+    if category_slug:
+        tours = Tour.objects.filter(category__slug=category_slug)
+    else:
+        tours = Tour.objects.all()
+        
+    return render(request, 'tours.html', {
+        'tours': tours,
+        'categories': categories,
+        'active_category': category_slug
+    })
 
 def feedback_view(request):
-    """Страница формы бронирования и обработка заявок."""
-    # 1. Пытаемся понять, пришел ли человек по кнопке конкретного тура
     tour_id = request.GET.get('tour_id')
     selected_tour = None
     if tour_id:
         selected_tour = Tour.objects.filter(id=tour_id).first()
 
-    # 2. Достаем все туры для выпадающего списка в форме
     all_tours = Tour.objects.all()
 
     if request.method == 'POST':
@@ -44,7 +47,6 @@ def feedback_view(request):
         comment = request.POST.get('comment')
         form_tour_id = request.POST.get('tour_id')
         
-        # Сохраняем заявку в базу данных
         fb = Feedback.objects.create(
             name=name,
             phone=phone,
@@ -53,25 +55,17 @@ def feedback_view(request):
             tour_id=form_tour_id if form_tour_id else None
         )
 
-        # 3. ЛОГИКА ОТПРАВКИ В TELEGRAM
-        print(f"--- DEBUG: Новая заявка от {name} ---")
         try:
-            # Вызываем функцию из services.py
             send_tg_notification(fb)
-            print("--- DEBUG: Уведомление в Telegram отправлено успешно ---")
         except Exception as e:
-            # Если бот упадет, сайт продолжит работать, а мы увидим ошибку в логах
-            print(f"--- DEBUG ERROR: Ошибка при отправке в TG: {e} ---")
+            print(f"Error sending TG: {e}")
 
-        # После успешной отправки показываем страницу благодарности
         return render(request, 'success.html')
 
-    # 4. Рендерим страницу формы
     return render(request, 'feedback.html', {
         'tours': all_tours,
         'selected_tour': selected_tour
     })
 
 def about(request):
-    """Страница о Дагестане."""
     return render(request, 'about.html')
