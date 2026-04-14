@@ -14,6 +14,29 @@ class TourAdmin(admin.ModelAdmin):
     inlines = [TourPhotoInline]
     list_display = ('title', 'category', 'price')
     list_filter = ('category',)
+    # Добавляем наше новое действие в список доступных
+    actions = ['duplicate_tours']
+
+    @admin.display(description="Дублировать выбранные туры")
+    def duplicate_tours(self, request, queryset):
+        for obj in queryset:
+            # Сохраняем ID оригинального объекта, чтобы скопировать связанные фото
+            original_id = obj.pk
+            
+            # 1. Клонируем основной объект тура
+            obj.pk = None  # Сбрасываем ID, чтобы Django создал новую запись
+            obj.title = f"{obj.title} (копия)"
+            obj.save()
+            
+            # 2. Клонируем связанные фотографии (если они есть)
+            original_photos = TourPhoto.objects.filter(tour_id=original_id)
+            for photo in original_photos:
+                TourPhoto.objects.create(
+                    tour=obj,
+                    image=photo.image
+                )
+        
+        self.message_user(request, f"Выбранные туры успешно продублированы вместе с фото.")
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
