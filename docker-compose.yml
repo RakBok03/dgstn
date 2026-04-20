@@ -12,12 +12,12 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    # Используем gunicorn для работы на сервере
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/code
       - media_data:/code/media
-    ports:
-      - "8001:8000"
+      - static_data:/code/static_result  # Добавляем волюм для статики
     env_file:
       - .env
     depends_on:
@@ -31,8 +31,8 @@ networks:
     driver: bridge
   npm_network:
     external: true
-    name: npm_network
 
 volumes:
   postgres_data:
   media_data:
+  static_data: # Объявляем волюм для статики
