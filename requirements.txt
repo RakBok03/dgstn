@@ -4,3 +4,4 @@ python-dotenv
 requests
 pillow
 gunicorn
+whitenoise==6.6.0
