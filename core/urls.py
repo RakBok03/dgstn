@@ -8,6 +8,5 @@ urlpatterns = [
     path('', include('tours.urls')),
 ]
 
-# Раздаем медиа-файлы всегда (и в DEBUG, и в PROD)
-# Статику (STATIC_URL) здесь добавлять НЕ НУЖНО, её уже обслуживает WhiteNoise
+# Убираем проверку if DEBUG, чтобы медиа работали на сервере
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
