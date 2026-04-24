@@ -1,9 +1,9 @@
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.core.cache import cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category, Review
+from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category, Review, ReviewComment
 from .services import send_tg_notification
 
 
@@ -110,6 +110,9 @@ def about(request):
 def reviews(request):
     errors = []
     like_rate_limited = request.GET.get("like_rate_limited") == "1"
+    comment_submitted = request.GET.get("comment_submitted") == "1"
+    comment_rate_limited = request.GET.get("comment_rate_limited") == "1"
+    comment_error = request.GET.get("comment_error") == "1"
     form_data = {
         "name": "",
         "city": "",
@@ -155,12 +158,19 @@ def reviews(request):
             )
             return redirect(f"{reverse('reviews')}?submitted=1")
 
-    approved_reviews = Review.objects.filter(is_approved=True)
+    approved_reviews = Review.objects.filter(is_approved=True).prefetch_related(
+        Prefetch(
+            "comments",
+            queryset=ReviewComment.objects.filter(is_approved=True).order_by("-created_at"),
+        )
+    )
     popular_reviews = list(
         approved_reviews.order_by("-likes_count", "-created_at")[:5]
     )
     popular_ids = [review.id for review in popular_reviews]
-    recent_reviews = approved_reviews.exclude(id__in=popular_ids).order_by("-created_at")
+    recent_reviews = list(
+        approved_reviews.exclude(id__in=popular_ids).order_by("-created_at")
+    )
 
     liked_review_ids = []
     for review_id in request.session.get("liked_reviews", []):
@@ -179,6 +189,9 @@ def reviews(request):
             "liked_review_ids": liked_review_ids,
             "submitted": request.GET.get("submitted") == "1",
             "like_rate_limited": like_rate_limited,
+            "comment_submitted": comment_submitted,
+            "comment_rate_limited": comment_rate_limited,
+            "comment_error": comment_error,
             "errors": errors,
             "form_data": form_data,
         },
@@ -214,3 +227,25 @@ def like_review(request, review_id):
     request.session.modified = True
 
     return redirect("reviews")
+
+
+@require_POST
+def add_review_comment(request, review_id):
+    review = get_object_or_404(Review, id=review_id, is_approved=True)
+
+    if _is_rate_limited(request, "review_comment", limit=20, window_seconds=3600):
+        return redirect(f"{reverse('reviews')}?comment_rate_limited=1#review-{review.id}")
+
+    name = (request.POST.get("name") or "").strip()
+    text = (request.POST.get("text") or "").strip()
+
+    if len(name) < 2 or len(text) < 3:
+        return redirect(f"{reverse('reviews')}?comment_error=1#review-{review.id}")
+
+    ReviewComment.objects.create(
+        review=review,
+        name=name,
+        text=text,
+    )
+
+    return redirect(f"{reverse('reviews')}?comment_submitted=1#review-{review.id}")

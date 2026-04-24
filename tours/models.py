@@ -71,6 +71,26 @@ class Review(models.Model):
     def __str__(self):
         return f"{self.name} ({self.rating}/5)"
 
+class ReviewComment(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name="Отзыв",
+    )
+    name = models.CharField("Имя", max_length=100)
+    text = models.TextField("Комментарий")
+    is_approved = models.BooleanField("Одобрен", default=False)
+    created_at = models.DateTimeField("Создан", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Комментарий к отзыву"
+        verbose_name_plural = "Комментарии к отзывам"
+
+    def __str__(self):
+        return f"{self.name}: {self.text[:40]}"
+
 class HomePageSettings(models.Model):
     hero_title = models.CharField("Заголовок на главном экране", max_length=200, default="Открой сердце гор")
     hero_subtitle = models.TextField("Подзаголовок", default="Индивидуальные и групповые путешествия по самым живописным уголкам Дагестана.")
