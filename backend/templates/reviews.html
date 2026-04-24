@@ -16,7 +16,14 @@
             <p class="text-slate-600 mt-4 text-base md:text-lg leading-relaxed">
                 В этом разделе публикуются только проверенные отзывы после модерации. Оставьте свой опыт поездки и помогите другим выбрать идеальный маршрут.
             </p>
+
         </div>
+
+        {% if like_rate_limited %}
+            <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                Too many like actions in a short time. Please try again in a few minutes.
+            </div>
+        {% endif %}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-14">
             <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
@@ -39,9 +46,6 @@
                                         <p class="text-sm text-slate-500">{{ review.city }}</p>
                                     {% endif %}
                                 </div>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600">
-                                    👍 {{ review.likes_count }}
-                                </span>
                             </div>
 
                             <div class="mt-3 text-amber-400">
@@ -62,10 +66,9 @@
                                     {% csrf_token %}
                                     <button
                                         type="submit"
-                                        class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
-                                        {% if review.id in liked_review_ids %}disabled{% endif %}
+                                        class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
                                     >
-                                        👍 {{ review.likes_count }}
+                                        {% if review.id in liked_review_ids %}Unlike{% else %}Like{% endif %} · {{ review.likes_count }}
                                     </button>
                                 </form>
                             </div>
@@ -187,12 +190,11 @@
                         <form method="post" action="{% url 'like_review' review.id %}">
                             {% csrf_token %}
                             <button
-                                type="submit"
-                                class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
-                                {% if review.id in liked_review_ids %}disabled{% endif %}
-                            >
-                                👍 {{ review.likes_count }}
-                            </button>
+                                        type="submit"
+                                        class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
+                                    >
+                                        {% if review.id in liked_review_ids %}Unlike{% else %}Like{% endif %} · {{ review.likes_count }}
+                                    </button>
                         </form>
                     </div>
                 </article>

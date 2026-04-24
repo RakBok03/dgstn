@@ -4,6 +4,12 @@
     <h2 class="text-3xl font-bold mb-2">Оставить заявку</h2>
     <p class="text-slate-500 mb-10">Заполните форму, и мы свяжемся с вами в ближайшее время.</p>
 
+    {% if rate_limit_error %}
+    <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
+        {{ rate_limit_error }}
+    </div>
+    {% endif %}
+
     <form method="POST" class="space-y-6">
         {% csrf_token %}
 

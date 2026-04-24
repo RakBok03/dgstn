@@ -1,9 +1,34 @@
 from django.db.models import F
+from django.core.cache import cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category, Review
 from .services import send_tg_notification
+
+
+def _get_client_ip(request):
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "unknown")
+
+
+def _is_rate_limited(request, scope: str, limit: int, window_seconds: int) -> bool:
+    client_ip = _get_client_ip(request)
+    cache_key = f"rate_limit:{scope}:{client_ip}"
+
+    if cache.add(cache_key, 1, timeout=window_seconds):
+        return False
+
+    try:
+        current_count = cache.incr(cache_key)
+    except Exception:
+        current_count = int(cache.get(cache_key, 0)) + 1
+        cache.set(cache_key, current_count, timeout=window_seconds)
+
+    return current_count > limit
+
 
 def index(request):
     """Главная страница с турами и настройками."""
@@ -44,6 +69,13 @@ def feedback_view(request):
     all_tours = Tour.objects.all()
 
     if request.method == 'POST':
+        if _is_rate_limited(request, "feedback_form", limit=8, window_seconds=3600):
+            return render(request, 'feedback.html', {
+                'tours': all_tours,
+                'selected_tour': selected_tour,
+                'rate_limit_error': 'Слишком много заявок с вашего IP. Попробуйте еще раз через час.',
+            })
+
         name = request.POST.get('name')
         phone = request.POST.get('phone')
         date = request.POST.get('date')
@@ -67,7 +99,8 @@ def feedback_view(request):
 
     return render(request, 'feedback.html', {
         'tours': all_tours,
-        'selected_tour': selected_tour
+        'selected_tour': selected_tour,
+        'rate_limit_error': None,
     })
 
 def about(request):
@@ -76,6 +109,7 @@ def about(request):
 
 def reviews(request):
     errors = []
+    like_rate_limited = request.GET.get("like_rate_limited") == "1"
     form_data = {
         "name": "",
         "city": "",
@@ -84,6 +118,9 @@ def reviews(request):
     }
 
     if request.method == "POST":
+        if _is_rate_limited(request, "review_form", limit=6, window_seconds=3600):
+            errors.append("Слишком много отзывов с вашего IP. Попробуйте еще раз через час.")
+
         name = (request.POST.get("name") or "").strip()
         city = (request.POST.get("city") or "").strip()
         text = (request.POST.get("text") or "").strip()
@@ -141,6 +178,7 @@ def reviews(request):
             "total_reviews": approved_reviews.count(),
             "liked_review_ids": liked_review_ids,
             "submitted": request.GET.get("submitted") == "1",
+            "like_rate_limited": like_rate_limited,
             "errors": errors,
             "form_data": form_data,
         },
@@ -149,6 +187,9 @@ def reviews(request):
 
 @require_POST
 def like_review(request, review_id):
+    if _is_rate_limited(request, "review_like", limit=120, window_seconds=600):
+        return redirect(f"{reverse('reviews')}?like_rate_limited=1")
+
     review = get_object_or_404(Review, id=review_id, is_approved=True)
     liked_reviews = request.session.get("liked_reviews", [])
     liked_review_ids = set()
@@ -159,10 +200,17 @@ def like_review(request, review_id):
         except (TypeError, ValueError):
             continue
 
-    if review.id not in liked_review_ids:
+    if review.id in liked_review_ids:
+        Review.objects.filter(id=review.id, likes_count__gt=0).update(
+            likes_count=F("likes_count") - 1
+        )
+        liked_review_ids.remove(review.id)
+    else:
         Review.objects.filter(id=review.id).update(likes_count=F("likes_count") + 1)
-        liked_reviews.append(review.id)
-        request.session["liked_reviews"] = liked_reviews
-        request.session.modified = True
+
+        liked_review_ids.add(review.id)
+
+    request.session["liked_reviews"] = list(liked_review_ids)
+    request.session.modified = True
 
     return redirect("reviews")
