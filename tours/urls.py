@@ -1,12 +1,18 @@
-from django.urls import path
+﻿from django.urls import path
+
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),                      # Главная
-    path('tours/', views.tour_list, name='tours'),        # Все туры (исправлено с 'tours' на 'tour_list')
-    path('reviews/', views.reviews, name='reviews'),      # Отзывы
-    path('reviews/<int:review_id>/like/', views.like_review, name='like_review'),
-    path('reviews/<int:review_id>/comment/', views.add_review_comment, name='add_review_comment'),
-    path('about/', views.about, name='about'),                # О нас
-    path('feedback/', views.feedback_view, name='feedback'),  # Форма
+    path("", views.index, name="index"),
+    path("tours/", views.tour_list, name="tours"),
+    path("tours/<int:tour_id>/favorite/", views.toggle_favorite, name="toggle_favorite"),
+    path("reviews/", views.reviews, name="reviews"),
+    path("reviews/<int:review_id>/like/", views.like_review, name="like_review"),
+    path("reviews/<int:review_id>/comment/", views.add_review_comment, name="add_review_comment"),
+    path("about/", views.about, name="about"),
+    path("feedback/", views.feedback_view, name="feedback"),
+    path("account/register/", views.register_view, name="register"),
+    path("account/login/", views.login_view, name="login"),
+    path("account/logout/", views.logout_view, name="logout"),
+    path("account/cabinet/", views.cabinet_view, name="cabinet"),
 ]

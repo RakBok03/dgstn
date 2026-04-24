@@ -1,9 +1,24 @@
-from django.db.models import F, Prefetch
+﻿from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import F, Prefetch
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category, Review, ReviewComment
+
+from .forms import LoginForm, RegisterForm
+from .models import (
+    Category,
+    Feedback,
+    HomePageSettings,
+    Review,
+    ReviewComment,
+    Tour,
+    TourFavorite,
+    UserProfile,
+    WelcomeBlock,
+)
 from .services import send_tg_notification
 
 
@@ -30,64 +45,118 @@ def _is_rate_limited(request, scope: str, limit: int, window_seconds: int) -> bo
     return current_count > limit
 
 
+def _display_name(user) -> str:
+    full_name = (user.get_full_name() or "").strip()
+    if full_name:
+        return full_name
+    return user.username
+
+
+def _favorite_ids_for_user(request):
+    if not request.user.is_authenticated:
+        return set()
+    return set(
+        TourFavorite.objects.filter(user=request.user).values_list("tour_id", flat=True)
+    )
+
+
+def _safe_next(next_url: str, fallback: str) -> str:
+    if next_url and next_url.startswith("/"):
+        return next_url
+    return fallback
+
+
 def index(request):
-    """Главная страница с турами и настройками."""
-    welcome_blocks = WelcomeBlock.objects.all().order_by('order')
-    tours = Tour.objects.all().order_by('-id')[:3]
+    welcome_blocks = WelcomeBlock.objects.all().order_by("order")
+    tours = Tour.objects.all().order_by("-id")[:3]
     settings = HomePageSettings.objects.first()
     if not settings:
         settings = HomePageSettings.objects.create()
-        
-    return render(request, 'index.html', {
-        'tours': tours,
-        'settings': settings,
-        'welcome_blocks': welcome_blocks,
-    })
+
+    return render(
+        request,
+        "index.html",
+        {
+            "tours": tours,
+            "settings": settings,
+            "welcome_blocks": welcome_blocks,
+            "favorite_tour_ids": _favorite_ids_for_user(request),
+        },
+    )
+
 
 def tour_list(request):
-    """Страница со списком всех туров с фильтрацией."""
-    category_slug = request.GET.get('category')
+    category_slug = request.GET.get("category")
     categories = Category.objects.all()
-    
+
     if category_slug:
         tours = Tour.objects.filter(category__slug=category_slug)
     else:
         tours = Tour.objects.all()
-        
-    return render(request, 'tours.html', {
-        'tours': tours,
-        'categories': categories,
-        'active_category': category_slug
-    })
+
+    return render(
+        request,
+        "tours.html",
+        {
+            "tours": tours,
+            "categories": categories,
+            "active_category": category_slug,
+            "favorite_tour_ids": _favorite_ids_for_user(request),
+        },
+    )
+
 
 def feedback_view(request):
-    tour_id = request.GET.get('tour_id')
+    tour_id = request.GET.get("tour_id")
     selected_tour = None
     if tour_id:
         selected_tour = Tour.objects.filter(id=tour_id).first()
 
     all_tours = Tour.objects.all()
 
-    if request.method == 'POST':
-        if _is_rate_limited(request, "feedback_form", limit=8, window_seconds=3600):
-            return render(request, 'feedback.html', {
-                'tours': all_tours,
-                'selected_tour': selected_tour,
-                'rate_limit_error': 'Слишком много заявок с вашего IP. Попробуйте еще раз через час.',
-            })
+    prefill_name = ""
+    prefill_phone = ""
+    if request.user.is_authenticated:
+        prefill_name = _display_name(request.user)
+        profile = getattr(request.user, "profile", None)
+        if profile:
+            prefill_phone = profile.phone
 
-        name = request.POST.get('name')
-        phone = request.POST.get('phone')
-        date = request.POST.get('date')
-        comment = request.POST.get('comment')
-        form_tour_id = request.POST.get('tour_id')
-        
+    if request.method == "POST":
+        if _is_rate_limited(request, "feedback_form", limit=8, window_seconds=3600):
+            return render(
+                request,
+                "feedback.html",
+                {
+                    "tours": all_tours,
+                    "selected_tour": selected_tour,
+                    "rate_limit_error": "Слишком много заявок с вашего IP. Попробуйте еще раз через час.",
+                    "prefill_name": prefill_name,
+                    "prefill_phone": prefill_phone,
+                },
+            )
+
+        name = (request.POST.get("name") or "").strip()
+        phone = (request.POST.get("phone") or "").strip()
+        date = request.POST.get("date")
+        comment = request.POST.get("comment")
+        form_tour_id = request.POST.get("tour_id")
+
+        if request.user.is_authenticated:
+            if not name:
+                name = _display_name(request.user)
+            if not phone:
+                profile = getattr(request.user, "profile", None)
+                if profile:
+                    phone = profile.phone
+
         fb = Feedback.objects.create(
+            user=request.user if request.user.is_authenticated else None,
             name=name,
             phone=phone,
             date=date,
             comment=comment,
-            tour_id=form_tour_id if form_tour_id else None
+            tour_id=form_tour_id if form_tour_id else None,
         )
 
         try:
@@ -95,16 +164,23 @@ def feedback_view(request):
         except Exception as e:
             print(f"Error sending TG: {e}")
 
-        return render(request, 'success.html')
+        return render(request, "success.html")
 
-    return render(request, 'feedback.html', {
-        'tours': all_tours,
-        'selected_tour': selected_tour,
-        'rate_limit_error': None,
-    })
+    return render(
+        request,
+        "feedback.html",
+        {
+            "tours": all_tours,
+            "selected_tour": selected_tour,
+            "rate_limit_error": None,
+            "prefill_name": prefill_name,
+            "prefill_phone": prefill_phone,
+        },
+    )
+
 
 def about(request):
-    return render(request, 'about.html')
+    return render(request, "about.html")
 
 
 def reviews(request):
@@ -113,31 +189,30 @@ def reviews(request):
     comment_submitted = request.GET.get("comment_submitted") == "1"
     comment_rate_limited = request.GET.get("comment_rate_limited") == "1"
     comment_error = request.GET.get("comment_error") == "1"
+
     form_data = {
-        "name": "",
         "city": "",
         "rating": "5",
         "text": "",
     }
 
     if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect(f"{reverse('login')}?next={reverse('reviews')}")
+
         if _is_rate_limited(request, "review_form", limit=6, window_seconds=3600):
             errors.append("Слишком много отзывов с вашего IP. Попробуйте еще раз через час.")
 
-        name = (request.POST.get("name") or "").strip()
         city = (request.POST.get("city") or "").strip()
         text = (request.POST.get("text") or "").strip()
         rating_raw = (request.POST.get("rating") or "").strip()
 
         form_data = {
-            "name": name,
             "city": city,
             "rating": rating_raw or "5",
             "text": text,
         }
 
-        if len(name) < 2:
-            errors.append("Укажите имя (минимум 2 символа).")
         if len(text) < 10:
             errors.append("Текст отзыва должен содержать минимум 10 символов.")
 
@@ -151,7 +226,8 @@ def reviews(request):
 
         if not errors:
             Review.objects.create(
-                name=name,
+                user=request.user,
+                name=_display_name(request.user),
                 city=city,
                 rating=rating,
                 text=text,
@@ -164,13 +240,11 @@ def reviews(request):
             queryset=ReviewComment.objects.filter(is_approved=True).order_by("-created_at"),
         )
     )
-    popular_reviews = list(
-        approved_reviews.order_by("-likes_count", "-created_at")[:5]
+
+    pinned_reviews = list(
+        approved_reviews.filter(is_pinned=True).order_by("-pinned_at", "-likes_count", "-created_at")
     )
-    popular_ids = [review.id for review in popular_reviews]
-    recent_reviews = list(
-        approved_reviews.exclude(id__in=popular_ids).order_by("-created_at")
-    )
+    regular_reviews = list(approved_reviews.filter(is_pinned=False).order_by("-created_at"))
 
     liked_review_ids = []
     for review_id in request.session.get("liked_reviews", []):
@@ -183,8 +257,8 @@ def reviews(request):
         request,
         "reviews.html",
         {
-            "popular_reviews": popular_reviews,
-            "recent_reviews": recent_reviews,
+            "pinned_reviews": pinned_reviews,
+            "regular_reviews": regular_reviews,
             "total_reviews": approved_reviews.count(),
             "liked_review_ids": liked_review_ids,
             "submitted": request.GET.get("submitted") == "1",
@@ -220,7 +294,6 @@ def like_review(request, review_id):
         liked_review_ids.remove(review.id)
     else:
         Review.objects.filter(id=review.id).update(likes_count=F("likes_count") + 1)
-
         liked_review_ids.add(review.id)
 
     request.session["liked_reviews"] = list(liked_review_ids)
@@ -229,6 +302,7 @@ def like_review(request, review_id):
     return redirect("reviews")
 
 
+@login_required
 @require_POST
 def add_review_comment(request, review_id):
     review = get_object_or_404(Review, id=review_id, is_approved=True)
@@ -236,16 +310,96 @@ def add_review_comment(request, review_id):
     if _is_rate_limited(request, "review_comment", limit=20, window_seconds=3600):
         return redirect(f"{reverse('reviews')}?comment_rate_limited=1#review-{review.id}")
 
-    name = (request.POST.get("name") or "").strip()
     text = (request.POST.get("text") or "").strip()
 
-    if len(name) < 2 or len(text) < 3:
+    if len(text) < 3:
         return redirect(f"{reverse('reviews')}?comment_error=1#review-{review.id}")
 
     ReviewComment.objects.create(
         review=review,
-        name=name,
+        user=request.user,
+        name=_display_name(request.user),
         text=text,
     )
 
     return redirect(f"{reverse('reviews')}?comment_submitted=1#review-{review.id}")
+
+
+@login_required
+@require_POST
+def toggle_favorite(request, tour_id):
+    tour = get_object_or_404(Tour, id=tour_id)
+    favorite = TourFavorite.objects.filter(user=request.user, tour=tour)
+    if favorite.exists():
+        favorite.delete()
+    else:
+        TourFavorite.objects.create(user=request.user, tour=tour)
+
+    next_url = _safe_next(
+        request.POST.get("next") or request.META.get("HTTP_REFERER", ""),
+        reverse("tours"),
+    )
+    return redirect(next_url)
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("cabinet")
+
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Регистрация завершена.")
+            return redirect("cabinet")
+    else:
+        form = RegisterForm()
+
+    return render(request, "auth_register.html", {"form": form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("cabinet")
+
+    next_url = request.GET.get("next") or request.POST.get("next") or reverse("cabinet")
+    next_url = _safe_next(next_url, reverse("cabinet"))
+
+    if request.method == "POST":
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect(next_url)
+    else:
+        form = LoginForm(request)
+
+    return render(request, "auth_login.html", {"form": form, "next": next_url})
+
+
+@require_POST
+def logout_view(request):
+    logout(request)
+    return redirect("index")
+
+
+@login_required
+def cabinet_view(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user, defaults={"phone": ""})
+
+    favorites = TourFavorite.objects.filter(user=request.user).select_related("tour").order_by("-created_at")
+    feedbacks = Feedback.objects.filter(user=request.user).select_related("tour").order_by("-created_at")
+    my_reviews = Review.objects.filter(user=request.user).order_by("-created_at")
+    my_comments = ReviewComment.objects.filter(user=request.user).select_related("review").order_by("-created_at")
+
+    return render(
+        request,
+        "cabinet.html",
+        {
+            "profile": profile,
+            "favorites": favorites,
+            "feedbacks": feedbacks,
+            "my_reviews": my_reviews,
+            "my_comments": my_comments,
+        },
+    )

@@ -1,0 +1,122 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<section class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900">Личный кабинет</h1>
+        <p class="text-slate-500 mt-2">Ваши данные, избранные туры, заявки, отзывы и комментарии.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm lg:col-span-1">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">Профиль</h2>
+            <div class="space-y-2 text-sm">
+                <p><span class="text-slate-500">Логин:</span> <span class="font-semibold text-slate-900">{{ request.user.username }}</span></p>
+                <p><span class="text-slate-500">Email:</span> <span class="font-semibold text-slate-900 break-all">{{ request.user.email }}</span></p>
+                <p><span class="text-slate-500">Телефон:</span> <span class="font-semibold text-slate-900">{{ profile.phone|default:'-' }}</span></p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm lg:col-span-2">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                    <p class="text-xs uppercase tracking-widest text-slate-400 font-bold">Избранное</p>
+                    <p class="text-2xl font-black text-slate-900 mt-1">{{ favorites|length }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                    <p class="text-xs uppercase tracking-widest text-slate-400 font-bold">Заявки</p>
+                    <p class="text-2xl font-black text-slate-900 mt-1">{{ feedbacks|length }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                    <p class="text-xs uppercase tracking-widest text-slate-400 font-bold">Отзывы</p>
+                    <p class="text-2xl font-black text-slate-900 mt-1">{{ my_reviews|length }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                    <p class="text-xs uppercase tracking-widest text-slate-400 font-bold">Комментарии</p>
+                    <p class="text-2xl font-black text-slate-900 mt-1">{{ my_comments|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Избранные туры</h3>
+            {% if favorites %}
+                <div class="space-y-3">
+                    {% for favorite in favorites %}
+                        <div class="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+                            <p class="font-semibold text-slate-900 break-words">{{ favorite.tour.title }}</p>
+                            <p class="text-xs text-slate-500 mt-1">Добавлен: {{ favorite.created_at|date:"d.m.Y H:i" }}</p>
+                            <a href="{% url 'tours' %}" class="text-sm text-emerald-700 font-semibold mt-2 inline-block">Перейти к турам</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500">Пока нет избранных туров.</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Отправленные заявки</h3>
+            {% if feedbacks %}
+                <div class="space-y-3">
+                    {% for fb in feedbacks %}
+                        <div class="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+                            <p class="font-semibold text-slate-900">{{ fb.tour.title|default:'Консультация без тура' }}</p>
+                            <p class="text-sm text-slate-600 mt-1">Дата поездки: {{ fb.date|date:"d.m.Y" }}</p>
+                            <p class="text-xs text-slate-500 mt-1">Отправлено: {{ fb.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500">Вы еще не отправляли заявки.</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Ваши отзывы</h3>
+            {% if my_reviews %}
+                <div class="space-y-3">
+                    {% for review in my_reviews %}
+                        <div class="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="font-semibold text-slate-900">Оценка: {{ review.rating }}/5</p>
+                                <span class="text-xs {% if review.is_approved %}text-emerald-700{% else %}text-amber-700{% endif %}">
+                                    {% if review.is_approved %}Опубликован{% else %}На модерации{% endif %}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mt-2 break-words whitespace-pre-line">{{ review.text }}</p>
+                            <p class="text-xs text-slate-500 mt-2">{{ review.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500">Вы еще не оставляли отзывы.</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900 mb-4">Ваши комментарии</h3>
+            {% if my_comments %}
+                <div class="space-y-3">
+                    {% for comment in my_comments %}
+                        <div class="rounded-2xl border border-slate-100 p-4 bg-slate-50">
+                            <p class="text-sm font-semibold text-slate-900">К отзыву: #{{ comment.review.id }}</p>
+                            <p class="text-sm text-slate-600 mt-2 break-words whitespace-pre-line">{{ comment.text }}</p>
+                            <div class="flex items-center justify-between mt-2">
+                                <p class="text-xs text-slate-500">{{ comment.created_at|date:"d.m.Y H:i" }}</p>
+                                <span class="text-xs {% if comment.is_approved %}text-emerald-700{% else %}text-amber-700{% endif %}">
+                                    {% if comment.is_approved %}Опубликован{% else %}На модерации{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500">Вы еще не оставляли комментарии.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

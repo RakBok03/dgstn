@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block content %}
 <section class="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-slate-50 to-slate-50">
@@ -11,146 +11,236 @@
                 Отзывы гостей
             </span>
             <h1 class="text-3xl md:text-5xl font-black text-slate-900 mt-5 leading-tight">
-                Что говорят о путешествиях с нами
+                Отзывы о поездках с нами
             </h1>
             <p class="text-slate-600 mt-4 text-base md:text-lg leading-relaxed">
-                В этом разделе публикуются только проверенные отзывы после модерации. Оставьте свой опыт поездки и помогите другим выбрать идеальный маршрут.
+                Публикуем только отзывы после модерации администратора.
             </p>
-
         </div>
 
         {% if like_rate_limited %}
             <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-                Too many like actions in a short time. Please try again in a few minutes.
+                Слишком много действий с реакциями. Попробуйте чуть позже.
             </div>
         {% endif %}
         {% if comment_rate_limited %}
             <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-                Too many comments from your IP. Please try again later.
+                Слишком много комментариев с вашего IP. Попробуйте позже.
             </div>
         {% endif %}
         {% if comment_submitted %}
             <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
-                Comment sent. It will appear after moderator approval.
+                Комментарий отправлен и появится после модерации.
             </div>
         {% endif %}
         {% if comment_error %}
             <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
-                Could not send comment. Check name and text length.
+                Не удалось отправить комментарий. Проверьте длину текста.
             </div>
         {% endif %}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-14">
             <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
+                {% if pinned_reviews %}
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between gap-3 mb-6">
+                            <h2 class="text-2xl md:text-3xl font-black text-slate-900">Закрепленные отзывы</h2>
+                            <span class="text-xs font-bold uppercase tracking-widest text-emerald-700">Вверху раздела</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for review in pinned_reviews %}
+                                <article id="review-{{ review.id }}" class="rounded-2xl border border-slate-100 p-5 bg-slate-50/70">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h3 class="text-lg font-bold text-slate-900 break-words">{{ review.name }}</h3>
+                                            {% if review.city %}
+                                                <p class="text-sm text-slate-500 break-words">{{ review.city }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-amber-400 text-base shrink-0">
+                                            {% for _ in "12345" %}
+                                                {% if forloop.counter <= review.rating %}★{% else %}<span class="text-slate-300">★</span>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <p class="text-slate-600 mt-3 leading-relaxed break-words whitespace-pre-line">{{ review.text }}</p>
+
+                                    <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
+                                        <span class="text-xs text-slate-400">{{ review.created_at|date:"d.m.Y" }}</span>
+                                        <form method="post" action="{% url 'like_review' review.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}">
+                                                👍 {{ review.likes_count }}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="mt-4 pt-4 border-t border-slate-200" x-data="{ showAllComments: false }">
+                                        <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">
+                                            Лучшие комментарии ({{ review.comments.all|length }})
+                                        </p>
+
+                                        {% if review.comments.all %}
+                                            <div class="space-y-2 mb-3">
+                                                {% for comment in review.comments.all|slice:":3" %}
+                                                    <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                                            <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                                                            <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                                                        </div>
+                                                        <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+
+                                            {% if review.comments.all|length > 3 %}
+                                                <button type="button" @click="showAllComments = !showAllComments" class="mb-3 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                                                    <span x-show="!showAllComments">Показать еще</span>
+                                                    <span x-show="showAllComments" x-cloak>Скрыть</span>
+                                                </button>
+                                                <div x-show="showAllComments" x-transition class="space-y-2 mb-3" x-cloak>
+                                                    {% for comment in review.comments.all|slice:"3:" %}
+                                                        <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                                            <div class="flex items-center justify-between gap-2 mb-1">
+                                                                <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                                                                <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                                                            </div>
+                                                            <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-sm text-slate-500 mb-3">Комментариев пока нет.</p>
+                                        {% endif %}
+
+                                        {% if request.user.is_authenticated %}
+                                            <form method="post" action="{% url 'add_review_comment' review.id %}" class="space-y-2">
+                                                {% csrf_token %}
+                                                <textarea name="text" rows="2" required placeholder="Напишите комментарий" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white text-sm"></textarea>
+                                                <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-emerald-600 transition">
+                                                    Отправить комментарий
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <a href="{% url 'login' %}?next={% url 'reviews' %}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700 transition">
+                                                Войдите, чтобы комментировать
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
                 <div class="flex items-center justify-between gap-3 mb-6">
-                    <h2 class="text-2xl md:text-3xl font-black text-slate-900">Топ-5 популярных</h2>
-                    <span class="text-xs font-bold uppercase tracking-widest text-slate-400">По лайкам</span>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900">Все отзывы</h2>
+                    <span class="text-sm text-slate-500">Опубликовано: {{ total_reviews }}</span>
                 </div>
 
-                {% if popular_reviews %}
+                {% if regular_reviews %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for review in popular_reviews %}
-                        <article id="review-{{ review.id }}" class="rounded-2xl border border-slate-100 p-5 bg-slate-50/70">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <p class="text-xs font-black uppercase tracking-widest text-emerald-600 mb-2">
-                                        #{{ forloop.counter }} в рейтинге
-                                    </p>
-                                    <h3 class="text-lg font-bold text-slate-900">{{ review.name }}</h3>
-                                    {% if review.city %}
-                                        <p class="text-sm text-slate-500">{{ review.city }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-amber-400">
-                                {% for _ in "12345" %}
-                                    {% if forloop.counter <= review.rating %}
-                                        ★
-                                    {% else %}
-                                        <span class="text-slate-300">★</span>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-
-                            <p class="text-slate-600 mt-3 leading-relaxed">{{ review.text|linebreaksbr }}</p>
-
-                            <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
-                                <span class="text-xs text-slate-400">{{ review.created_at|date:"d.m.Y" }}</span>
-                                <form method="post" action="{% url 'like_review' review.id %}">
-                                    {% csrf_token %}
-                                    <button
-                                        type="submit"
-                                        class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
-                                    >
-                                        👍 {{ review.likes_count }}
-                                    </button>
-                                </form>
-                            </div>
-
-                            <div class="mt-4 pt-4 border-t border-slate-200">
-                                <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">
-                                    Comments ({{ review.comments.all|length }})
-                                </p>
-
-                                {% if review.comments.all %}
-                                    <div class="space-y-2 mb-3 max-h-44 overflow-y-auto pr-1">
-                                        {% for comment in review.comments.all %}
-                                            <div class="bg-white border border-slate-200 rounded-xl p-3">
-                                                <div class="flex items-center justify-between gap-2 mb-1">
-                                                    <span class="text-sm font-semibold text-slate-700">{{ comment.name }}</span>
-                                                    <span class="text-xs text-slate-400">{{ comment.created_at|date:"d.m.Y" }}</span>
-                                                </div>
-                                                <p class="text-sm text-slate-600 leading-relaxed">{{ comment.text|linebreaksbr }}</p>
-                                            </div>
+                        {% for review in regular_reviews %}
+                            <article id="review-{{ review.id }}" class="rounded-2xl border border-slate-100 p-5 bg-slate-50/70">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900 break-words">{{ review.name }}</h3>
+                                        {% if review.city %}
+                                            <p class="text-sm text-slate-500 break-words">{{ review.city }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-amber-400 text-base shrink-0">
+                                        {% for _ in "12345" %}
+                                            {% if forloop.counter <= review.rating %}★{% else %}<span class="text-slate-300">★</span>{% endif %}
                                         {% endfor %}
                                     </div>
-                                {% else %}
-                                    <p class="text-sm text-slate-500 mb-3">No comments yet.</p>
-                                {% endif %}
+                                </div>
 
-                                <form method="post" action="{% url 'add_review_comment' review.id %}" class="space-y-2">
-                                    {% csrf_token %}
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        required
-                                        maxlength="100"
-                                        placeholder="Your name"
-                                        class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white text-sm"
-                                    >
-                                    <textarea
-                                        name="text"
-                                        rows="2"
-                                        required
-                                        placeholder="Write a comment"
-                                        class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white text-sm"
-                                    ></textarea>
-                                    <button
-                                        type="submit"
-                                        class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-emerald-600 transition"
-                                    >
-                                        Send comment
-                                    </button>
-                                </form>
-                            </div>
-                        </article>
+                                <p class="text-slate-600 mt-3 leading-relaxed break-words whitespace-pre-line">{{ review.text }}</p>
+
+                                <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
+                                    <span class="text-xs text-slate-400">{{ review.created_at|date:"d.m.Y" }}</span>
+                                    <form method="post" action="{% url 'like_review' review.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}">
+                                            👍 {{ review.likes_count }}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-t border-slate-200" x-data="{ showAllComments: false }">
+                                    <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">
+                                        Лучшие комментарии ({{ review.comments.all|length }})
+                                    </p>
+
+                                    {% if review.comments.all %}
+                                        <div class="space-y-2 mb-3">
+                                            {% for comment in review.comments.all|slice:":3" %}
+                                                <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                                        <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                                                        <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                                                    </div>
+                                                    <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        {% if review.comments.all|length > 3 %}
+                                            <button type="button" @click="showAllComments = !showAllComments" class="mb-3 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                                                <span x-show="!showAllComments">Показать еще</span>
+                                                <span x-show="showAllComments" x-cloak>Скрыть</span>
+                                            </button>
+                                            <div x-show="showAllComments" x-transition class="space-y-2 mb-3" x-cloak>
+                                                {% for comment in review.comments.all|slice:"3:" %}
+                                                    <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                                            <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                                                            <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                                                        </div>
+                                                        <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-sm text-slate-500 mb-3">Комментариев пока нет.</p>
+                                    {% endif %}
+
+                                    {% if request.user.is_authenticated %}
+                                        <form method="post" action="{% url 'add_review_comment' review.id %}" class="space-y-2">
+                                            {% csrf_token %}
+                                            <textarea name="text" rows="2" required placeholder="Напишите комментарий" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white text-sm"></textarea>
+                                            <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-emerald-600 transition">
+                                                Отправить комментарий
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'login' %}?next={% url 'reviews' %}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700 transition">
+                                            Войдите, чтобы комментировать
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </article>
                         {% endfor %}
                     </div>
-                {% else %}
+                {% elif not pinned_reviews %}
                     <div class="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center bg-white">
-                        <p class="text-slate-500">Пока нет одобренных отзывов. Станьте первым, кто поделится впечатлениями.</p>
+                        <p class="text-slate-500">Пока нет одобренных отзывов.</p>
                     </div>
                 {% endif %}
             </div>
 
             <aside class="bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
                 <h2 class="text-2xl font-black text-slate-900 mb-2">Оставить отзыв</h2>
-                <p class="text-slate-500 text-sm mb-6">После отправки отзыв попадет на модерацию администратора.</p>
+                <p class="text-slate-500 text-sm mb-6">Отзыв попадет на модерацию администратора.</p>
 
                 {% if submitted %}
                     <div class="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
-                        Спасибо. Отзыв отправлен и будет опубликован после проверки.
+                        Спасибо. Отзыв отправлен.
                     </div>
                 {% endif %}
 
@@ -162,158 +252,50 @@
                     </div>
                 {% endif %}
 
-                <form method="post" class="space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Имя</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value="{{ form_data.name }}"
-                            required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white"
-                            placeholder="Например, Айшат"
-                        >
+                {% if request.user.is_authenticated %}
+                    <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600">
+                        Отзыв будет опубликован от имени: <span class="font-semibold text-slate-900">{{ request.user.username }}</span>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Город (необязательно)</label>
-                        <input
-                            type="text"
-                            name="city"
-                            value="{{ form_data.city }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white"
-                            placeholder="Махачкала"
-                        >
-                    </div>
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Оценка</label>
-                        <select
-                            name="rating"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white"
-                        >
-                            <option value="5" {% if form_data.rating == "5" %}selected{% endif %}>5 - Отлично</option>
-                            <option value="4" {% if form_data.rating == "4" %}selected{% endif %}>4 - Очень хорошо</option>
-                            <option value="3" {% if form_data.rating == "3" %}selected{% endif %}>3 - Нормально</option>
-                            <option value="2" {% if form_data.rating == "2" %}selected{% endif %}>2 - Есть замечания</option>
-                            <option value="1" {% if form_data.rating == "1" %}selected{% endif %}>1 - Не понравилось</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Город (необязательно)</label>
+                            <input type="text" name="city" value="{{ form_data.city }}" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white" placeholder="Махачкала">
+                        </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Текст отзыва</label>
-                        <textarea
-                            name="text"
-                            rows="5"
-                            required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white"
-                            placeholder="Расскажите, что понравилось в поездке"
-                        >{{ form_data.text }}</textarea>
-                    </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Оценка</label>
+                            <select name="rating" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white">
+                                <option value="5" {% if form_data.rating == "5" %}selected{% endif %}>5 - Отлично</option>
+                                <option value="4" {% if form_data.rating == "4" %}selected{% endif %}>4 - Очень хорошо</option>
+                                <option value="3" {% if form_data.rating == "3" %}selected{% endif %}>3 - Нормально</option>
+                                <option value="2" {% if form_data.rating == "2" %}selected{% endif %}>2 - Есть замечания</option>
+                                <option value="1" {% if form_data.rating == "1" %}selected{% endif %}>1 - Не понравилось</option>
+                            </select>
+                        </div>
 
-                    <button
-                        type="submit"
-                        class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-emerald-600 transition shadow-md shadow-slate-200"
-                    >
-                        Отправить отзыв
-                    </button>
-                </form>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Текст отзыва</label>
+                            <textarea name="text" rows="5" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white break-words" placeholder="Расскажите, что понравилось в поездке">{{ form_data.text }}</textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-emerald-600 transition shadow-md shadow-slate-200">
+                            Отправить отзыв
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 text-sm">
+                        Чтобы оставить отзыв, войдите в аккаунт или зарегистрируйтесь.
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 gap-3">
+                        <a href="{% url 'login' %}?next={% url 'reviews' %}" class="w-full text-center bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition">Войти</a>
+                        <a href="{% url 'register' %}" class="w-full text-center bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:border-emerald-500 hover:text-emerald-700 transition">Регистрация</a>
+                    </div>
+                {% endif %}
             </aside>
         </div>
-
-        <div class="flex items-center justify-between gap-3 mb-6">
-            <h2 class="text-2xl md:text-3xl font-black text-slate-900">Остальные отзывы</h2>
-            <span class="text-sm text-slate-500">Опубликовано: {{ total_reviews }}</span>
-        </div>
-
-        {% if recent_reviews %}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
-                {% for review in recent_reviews %}
-                <article id="review-{{ review.id }}" class="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-900">{{ review.name }}</h3>
-                            {% if review.city %}
-                                <p class="text-sm text-slate-500">{{ review.city }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="text-amber-400 text-base">
-                            {% for _ in "12345" %}
-                                {% if forloop.counter <= review.rating %}★{% else %}<span class="text-slate-300">★</span>{% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <p class="text-slate-600 leading-relaxed mt-4">{{ review.text|linebreaksbr }}</p>
-
-                    <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-xs text-slate-400">{{ review.created_at|date:"d.m.Y" }}</span>
-                        <form method="post" action="{% url 'like_review' review.id %}">
-                            {% csrf_token %}
-                            <button
-                                        type="submit"
-                                        class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}"
-                                    >
-                                        👍 {{ review.likes_count }}
-                                    </button>
-                        </form>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-slate-200">
-                        <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">
-                            Comments ({{ review.comments.all|length }})
-                        </p>
-
-                        {% if review.comments.all %}
-                            <div class="space-y-2 mb-3 max-h-44 overflow-y-auto pr-1">
-                                {% for comment in review.comments.all %}
-                                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                                        <div class="flex items-center justify-between gap-2 mb-1">
-                                            <span class="text-sm font-semibold text-slate-700">{{ comment.name }}</span>
-                                            <span class="text-xs text-slate-400">{{ comment.created_at|date:"d.m.Y" }}</span>
-                                        </div>
-                                        <p class="text-sm text-slate-600 leading-relaxed">{{ comment.text|linebreaksbr }}</p>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-sm text-slate-500 mb-3">No comments yet.</p>
-                        {% endif %}
-
-                        <form method="post" action="{% url 'add_review_comment' review.id %}" class="space-y-2">
-                            {% csrf_token %}
-                            <input
-                                type="text"
-                                name="name"
-                                required
-                                maxlength="100"
-                                placeholder="Your name"
-                                class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white text-sm"
-                            >
-                            <textarea
-                                name="text"
-                                rows="2"
-                                required
-                                placeholder="Write a comment"
-                                class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white text-sm"
-                            ></textarea>
-                            <button
-                                type="submit"
-                                class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-emerald-600 transition"
-                            >
-                                Send comment
-                            </button>
-                        </form>
-                    </div>
-                </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="rounded-3xl border-2 border-dashed border-slate-200 p-12 text-center bg-white">
-                <p class="text-slate-500">Новых отзывов пока нет. В топе показаны самые популярные.</p>
-            </div>
-        {% endif %}
     </div>
 </section>
 {% endblock %}
