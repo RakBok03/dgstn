@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, ProfileUpdateForm, RegisterForm
 from .models import (
     Category,
     Feedback,
@@ -20,6 +20,9 @@ from .models import (
     WelcomeBlock,
 )
 from .services import send_tg_notification
+
+MAX_REVIEW_WORDS = 120
+REVIEW_PREVIEW_WORDS = 35
 
 
 def _get_client_ip(request):
@@ -216,6 +219,10 @@ def reviews(request):
         if len(text) < 10:
             errors.append("Текст отзыва должен содержать минимум 10 символов.")
 
+        words_count = len(text.split()) if text else 0
+        if words_count > MAX_REVIEW_WORDS:
+            errors.append(f"Отзыв слишком длинный. Максимум {MAX_REVIEW_WORDS} слов.")
+
         try:
             rating = int(rating_raw)
             if rating < 1 or rating > 5:
@@ -242,7 +249,9 @@ def reviews(request):
     )
 
     pinned_reviews = list(
-        approved_reviews.filter(is_pinned=True).order_by("-pinned_at", "-likes_count", "-created_at")
+        approved_reviews.filter(is_pinned=True).order_by(
+            "-pinned_at", "-likes_count", "-created_at"
+        )
     )
     regular_reviews = list(approved_reviews.filter(is_pinned=False).order_by("-created_at"))
 
@@ -268,6 +277,8 @@ def reviews(request):
             "comment_error": comment_error,
             "errors": errors,
             "form_data": form_data,
+            "review_word_limit": MAX_REVIEW_WORDS,
+            "review_preview_words": REVIEW_PREVIEW_WORDS,
         },
     )
 
@@ -344,7 +355,7 @@ def toggle_favorite(request, tour_id):
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("cabinet")
+        return redirect("profile")
 
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -352,7 +363,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Регистрация завершена.")
-            return redirect("cabinet")
+            return redirect("profile")
     else:
         form = RegisterForm()
 
@@ -361,10 +372,10 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("cabinet")
+        return redirect("profile")
 
-    next_url = request.GET.get("next") or request.POST.get("next") or reverse("cabinet")
-    next_url = _safe_next(next_url, reverse("cabinet"))
+    next_url = request.GET.get("next") or request.POST.get("next") or reverse("profile")
+    next_url = _safe_next(next_url, reverse("profile"))
 
     if request.method == "POST":
         form = LoginForm(request, data=request.POST)
@@ -383,23 +394,51 @@ def logout_view(request):
     return redirect("index")
 
 
-@login_required
-def cabinet_view(request):
+def profile_view(request):
+    if not request.user.is_authenticated:
+        return render(request, "profile_guest.html")
+
     profile, _ = UserProfile.objects.get_or_create(user=request.user, defaults={"phone": ""})
 
-    favorites = TourFavorite.objects.filter(user=request.user).select_related("tour").order_by("-created_at")
-    feedbacks = Feedback.objects.filter(user=request.user).select_related("tour").order_by("-created_at")
+    if request.method == "POST":
+        profile_form = ProfileUpdateForm(request.POST, user=request.user)
+        if profile_form.is_valid():
+            profile_form.save()
+            messages.success(request, "Профиль обновлен.")
+            return redirect("profile")
+    else:
+        profile_form = ProfileUpdateForm(user=request.user)
+
+    favorites = (
+        TourFavorite.objects.filter(user=request.user)
+        .select_related("tour")
+        .order_by("-created_at")
+    )
+    feedbacks = (
+        Feedback.objects.filter(user=request.user)
+        .select_related("tour")
+        .order_by("-created_at")
+    )
     my_reviews = Review.objects.filter(user=request.user).order_by("-created_at")
-    my_comments = ReviewComment.objects.filter(user=request.user).select_related("review").order_by("-created_at")
+    my_comments = (
+        ReviewComment.objects.filter(user=request.user)
+        .select_related("review")
+        .order_by("-created_at")
+    )
 
     return render(
         request,
         "cabinet.html",
         {
             "profile": profile,
+            "profile_form": profile_form,
             "favorites": favorites,
             "feedbacks": feedbacks,
             "my_reviews": my_reviews,
             "my_comments": my_comments,
         },
     )
+
+
+def cabinet_view(request):
+    return redirect("profile")
