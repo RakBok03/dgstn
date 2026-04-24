@@ -54,6 +54,23 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Заявка от {self.name}"
 
+class Review(models.Model):
+    name = models.CharField("Имя", max_length=100)
+    city = models.CharField("Город", max_length=100, blank=True)
+    rating = models.PositiveSmallIntegerField("Оценка", default=5)
+    text = models.TextField("Текст отзыва")
+    likes_count = models.PositiveIntegerField("Лайки", default=0)
+    is_approved = models.BooleanField("Одобрен", default=False)
+    created_at = models.DateTimeField("Создан", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
+
+    def __str__(self):
+        return f"{self.name} ({self.rating}/5)"
+
 class HomePageSettings(models.Model):
     hero_title = models.CharField("Заголовок на главном экране", max_length=200, default="Открой сердце гор")
     hero_subtitle = models.TextField("Подзаголовок", default="Индивидуальные и групповые путешествия по самым живописным уголкам Дагестана.")

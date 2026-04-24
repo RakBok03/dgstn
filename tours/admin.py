@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tour, TourPhoto, Feedback, HomePageSettings, WelcomeBlock, Category
+from .models import Tour, TourPhoto, Feedback, HomePageSettings, WelcomeBlock, Category, Review
 
 class TourPhotoInline(admin.TabularInline):
     model = TourPhoto
@@ -55,3 +55,23 @@ class HomePageSettingsAdmin(admin.ModelAdmin):
 class WelcomeBlockAdmin(admin.ModelAdmin):
     list_display = ('title', 'media_type', 'is_large', 'order')
     list_editable = ('is_large', 'order')
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('name', 'city', 'rating', 'likes_count', 'is_approved', 'created_at')
+    list_filter = ('is_approved', 'rating', 'created_at')
+    search_fields = ('name', 'city', 'text')
+    ordering = ('-created_at',)
+    readonly_fields = ('likes_count', 'created_at')
+    actions = ('approve_reviews', 'hide_reviews')
+
+    @admin.action(description="Одобрить выбранные отзывы")
+    def approve_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"Одобрено отзывов: {updated}.")
+
+    @admin.action(description="Снять с публикации выбранные отзывы")
+    def hide_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f"Снято с публикации: {updated}.")

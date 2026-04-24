@@ -1,5 +1,8 @@
-from django.shortcuts import render, redirect
-from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category
+from django.db.models import F
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.views.decorators.http import require_POST
+from .models import Tour, Feedback, HomePageSettings, WelcomeBlock, Category, Review
 from .services import send_tg_notification
 
 def index(request):
@@ -69,3 +72,97 @@ def feedback_view(request):
 
 def about(request):
     return render(request, 'about.html')
+
+
+def reviews(request):
+    errors = []
+    form_data = {
+        "name": "",
+        "city": "",
+        "rating": "5",
+        "text": "",
+    }
+
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()
+        city = (request.POST.get("city") or "").strip()
+        text = (request.POST.get("text") or "").strip()
+        rating_raw = (request.POST.get("rating") or "").strip()
+
+        form_data = {
+            "name": name,
+            "city": city,
+            "rating": rating_raw or "5",
+            "text": text,
+        }
+
+        if len(name) < 2:
+            errors.append("Укажите имя (минимум 2 символа).")
+        if len(text) < 10:
+            errors.append("Текст отзыва должен содержать минимум 10 символов.")
+
+        try:
+            rating = int(rating_raw)
+            if rating < 1 or rating > 5:
+                errors.append("Оценка должна быть от 1 до 5.")
+        except ValueError:
+            errors.append("Выберите корректную оценку.")
+            rating = 5
+
+        if not errors:
+            Review.objects.create(
+                name=name,
+                city=city,
+                rating=rating,
+                text=text,
+            )
+            return redirect(f"{reverse('reviews')}?submitted=1")
+
+    approved_reviews = Review.objects.filter(is_approved=True)
+    popular_reviews = list(
+        approved_reviews.order_by("-likes_count", "-created_at")[:5]
+    )
+    popular_ids = [review.id for review in popular_reviews]
+    recent_reviews = approved_reviews.exclude(id__in=popular_ids).order_by("-created_at")
+
+    liked_review_ids = []
+    for review_id in request.session.get("liked_reviews", []):
+        try:
+            liked_review_ids.append(int(review_id))
+        except (TypeError, ValueError):
+            continue
+
+    return render(
+        request,
+        "reviews.html",
+        {
+            "popular_reviews": popular_reviews,
+            "recent_reviews": recent_reviews,
+            "total_reviews": approved_reviews.count(),
+            "liked_review_ids": liked_review_ids,
+            "submitted": request.GET.get("submitted") == "1",
+            "errors": errors,
+            "form_data": form_data,
+        },
+    )
+
+
+@require_POST
+def like_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, is_approved=True)
+    liked_reviews = request.session.get("liked_reviews", [])
+    liked_review_ids = set()
+
+    for liked_id in liked_reviews:
+        try:
+            liked_review_ids.add(int(liked_id))
+        except (TypeError, ValueError):
+            continue
+
+    if review.id not in liked_review_ids:
+        Review.objects.filter(id=review.id).update(likes_count=F("likes_count") + 1)
+        liked_reviews.append(review.id)
+        request.session["liked_reviews"] = liked_reviews
+        request.session.modified = True
+
+    return redirect("reviews")

@@ -31,6 +31,7 @@
             <div class="hidden md:flex items-center space-x-8 text-sm font-medium">
                 <a href="{% url 'index' %}" class="text-slate-600 hover:text-emerald-600 transition">Главная</a>
                 <a href="{% url 'tours' %}" class="text-slate-600 hover:text-emerald-600 transition">Туры</a>
+                <a href="{% url 'reviews' %}" class="text-slate-600 hover:text-emerald-600 transition">Отзывы</a>
                 <a href="{% url 'about' %}" class="text-slate-600 hover:text-emerald-600 transition">О Дагестане</a>
                 <a href="{% url 'feedback' %}" class="bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-emerald-600 transition shadow-md shadow-slate-200">
                     Забронировать
@@ -55,6 +56,7 @@
              x-cloak>
             <a href="{% url 'index' %}" class="block px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg">Главная</a>
             <a href="{% url 'tours' %}" class="block px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg">Туры</a>
+            <a href="{% url 'reviews' %}" class="block px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg">Отзывы</a>
             <a href="{% url 'about' %}" class="block px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg">О нас</a>
             <div class="pt-4">
                 <a href="{% url 'feedback' %}" class="block w-full text-center bg-emerald-500 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-emerald-100">
@@ -82,6 +84,7 @@
                     <ul class="space-y-4 text-slate-300 text-sm">
                         <li><a href="{% url 'index' %}" class="hover:text-white transition">Главная</a></li>
                         <li><a href="{% url 'tours' %}" class="hover:text-white transition">Наши туры</a></li>
+                        <li><a href="{% url 'reviews' %}" class="hover:text-white transition">Отзывы</a></li>
                         <li><a href="{% url 'about' %}" class="hover:text-white transition">О Дагестане</a></li>
                     </ul>
                 </div>
