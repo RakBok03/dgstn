@@ -12,11 +12,16 @@ def send_tg_notification(fb_obj): # Принимаем один объект fb
         print("Ошибка: Токен или Chat ID не найдены в .env")
         return
 
+    tour_title = fb_obj.tour.title if fb_obj.tour else "Не выбран"
+    tour_type = fb_obj.get_tour_type_display() if fb_obj.tour_type else "Не указан"
+
     # Достаем данные прямо из объекта
     message = (
         f"🚀 **Новая заявка с сайта!**\n\n"
         f"👤 Имя: {fb_obj.name}\n"
         f"📞 Тел: {fb_obj.phone}\n"
+        f"🧭 Тип тура: {tour_type}\n"
+        f"🏔️ Тур: {tour_title}\n"
         f"📅 Дата: {fb_obj.date}\n"
         f"📝 Коммент: {fb_obj.comment}"
     )

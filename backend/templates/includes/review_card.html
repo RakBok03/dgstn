@@ -1,0 +1,101 @@
+<article id="review-{{ review.id }}" x-data="{ expandedText: false, showAllComments: false }" class="rounded-2xl border border-slate-100 p-5 bg-white shadow-sm">
+    <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 font-black flex items-center justify-center shrink-0">
+                {{ review.name|slice:":1"|upper }}
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-lg font-bold text-slate-900 break-words">{{ review.name }}</h3>
+                <p class="text-sm text-slate-500 break-words">
+                    {% if review.city %}{{ review.city }}{% else %}Гость тура{% endif %} · {{ review.created_at|date:"d.m.Y" }}
+                </p>
+            </div>
+        </div>
+        <div class="text-amber-400 text-base shrink-0" aria-label="Оценка {{ review.rating }} из 5">
+            {% for _ in "12345" %}
+                {% if forloop.counter <= review.rating %}★{% else %}<span class="text-slate-300">★</span>{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="relative">
+            <p :class="expandedText ? '' : 'max-h-28 overflow-hidden'" class="text-slate-600 leading-relaxed break-words whitespace-pre-line transition-all duration-200">{{ review.text }}</p>
+            {% if review.text|wordcount > review_preview_words %}
+                <div x-show="!expandedText" class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent"></div>
+            {% endif %}
+        </div>
+        {% if review.text|wordcount > review_preview_words %}
+            <button type="button" @click="expandedText = !expandedText" class="mt-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                <span x-show="!expandedText">Посмотреть полностью</span>
+                <span x-show="expandedText" x-cloak>Свернуть</span>
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-xs text-slate-400">
+            {% if review.is_pinned %}Закрепленный отзыв{% else %}Проверен модератором{% endif %}
+        </span>
+        <form method="post" action="{% url 'like_review' review.id %}">
+            {% csrf_token %}
+            <button type="submit" class="text-sm font-semibold px-3 py-1.5 rounded-full border transition {% if review.id in liked_review_ids %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600{% endif %}">
+                Нравится: {{ review.likes_count }}
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-100">
+        <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">
+            Комментарии ({{ review.comments.all|length }})
+        </p>
+
+        {% if review.comments.all %}
+            <div class="space-y-2 mb-3">
+                {% for comment in review.comments.all|slice:":3" %}
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                            <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                        </div>
+                        <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if review.comments.all|length > 3 %}
+                <button type="button" @click="showAllComments = !showAllComments" class="mb-3 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                    <span x-show="!showAllComments">Показать еще</span>
+                    <span x-show="showAllComments" x-cloak>Скрыть</span>
+                </button>
+                <div x-show="showAllComments" x-transition class="space-y-2 mb-3" x-cloak>
+                    {% for comment in review.comments.all|slice:"3:" %}
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-sm font-semibold text-slate-700 break-words">{{ comment.name }}</span>
+                                <span class="text-xs text-slate-400 shrink-0">{{ comment.created_at|date:"d.m.Y" }}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-line">{{ comment.text }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% else %}
+            <p class="text-sm text-slate-500 mb-3">Комментариев пока нет.</p>
+        {% endif %}
+
+        {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'add_review_comment' review.id %}" class="space-y-2">
+                {% csrf_token %}
+                <textarea name="text" rows="2" required placeholder="Напишите комментарий" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none bg-white text-sm"></textarea>
+                <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-emerald-600 transition">
+                    Отправить комментарий
+                </button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}?next={% url 'reviews' %}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700 transition">
+                Войдите, чтобы комментировать
+            </a>
+        {% endif %}
+    </div>
+</article>

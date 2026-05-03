@@ -152,6 +152,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static_result"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    BASE_DIR / "images",
 ]
 
 # Media (tour photos and videos)

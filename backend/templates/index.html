@@ -1,26 +1,46 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<style>
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
-
-<div class="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
+<div class="relative min-h-[640px] md:min-h-[720px] flex items-center overflow-hidden bg-slate-900">
     <div class="absolute inset-0 z-0">
         {% if settings.hero_image %}
-            <img src="{{ settings.hero_image.url }}" class="w-full h-full object-cover brightness-50">
+            <img src="{{ settings.hero_image.url }}" alt="Горы Дагестана" class="w-full h-full object-cover brightness-[0.48]">
         {% else %}
-            <div class="w-full h-full bg-slate-800 brightness-50"></div>
+            <img src="{% static 'Главное меню_2.JPG' %}" alt="Горы Дагестана" class="w-full h-full object-cover brightness-[0.48]">
         {% endif %}
     </div>
 
-    <div class="relative z-10 text-center text-white px-6">
-        <h1 class="text-4xl md:text-7xl font-bold mb-6 leading-tight">{{ settings.hero_title }}</h1>
-        <p class="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">{{ settings.hero_subtitle }}</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/tours" class="bg-white text-slate-900 px-8 py-4 rounded-full font-semibold hover:bg-emerald-500 hover:text-white transition text-center">Смотреть туры</a>
-            <a href="/feedback" class="border border-white/30 backdrop-blur-sm px-8 py-4 rounded-full font-semibold hover:bg-white/10 transition text-center">Связаться с нами</a>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 py-20 md:py-28 text-white">
+        <div class="max-w-3xl">
+            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/15 backdrop-blur text-white text-xs font-bold uppercase tracking-widest border border-white/20">
+                Туры по Дагестану с гидом
+            </span>
+            <h1 class="text-4xl md:text-7xl font-black mt-6 mb-6 leading-tight">{{ settings.hero_title }}</h1>
+            <p class="text-lg md:text-xl text-white/85 mb-8 max-w-2xl leading-relaxed">{{ settings.hero_subtitle }}</p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'tours' %}" class="bg-white text-slate-900 px-8 py-4 rounded-full font-bold hover:bg-emerald-500 hover:text-white transition text-center shadow-xl">
+                    Выбрать тур
+                </a>
+                <a href="{% url 'feedback' %}" class="border border-white/35 backdrop-blur-sm px-8 py-4 rounded-full font-bold hover:bg-white/10 transition text-center">
+                    Получить консультацию
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-12 max-w-4xl">
+            <a href="{% url 'tours' %}?category=jeep-tours" class="rounded-2xl bg-white/12 backdrop-blur border border-white/15 p-4 hover:bg-white/18 transition">
+                <p class="text-sm font-bold">Джип-туры в горы</p>
+                <p class="text-xs text-white/70 mt-1">Видовые дороги и безопасный маршрут</p>
+            </a>
+            <a href="{% url 'tours' %}?category=wellness" class="rounded-2xl bg-white/12 backdrop-blur border border-white/15 p-4 hover:bg-white/18 transition">
+                <p class="text-sm font-bold">Оздоровительный отдых</p>
+                <p class="text-xs text-white/70 mt-1">Источники с учетом самочувствия</p>
+            </a>
+            <a href="{% url 'feedback' %}" class="rounded-2xl bg-emerald-500/90 p-4 hover:bg-emerald-500 transition">
+                <p class="text-sm font-bold">Не знаете, что выбрать?</p>
+                <p class="text-xs text-white/85 mt-1">Подберем маршрут под даты и состав</p>
+            </a>
         </div>
     </div>
 </div>
@@ -29,18 +49,18 @@
 <section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
     <div class="mb-10">
         <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Почему выбирают нас</h2>
-        <p class="text-slate-500 mt-2">Коротко о главном в наших путешествиях</p>
+        <p class="text-slate-500 mt-2">Безопасные маршруты, местное сопровождение и живое знакомство с Дагестаном.</p>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:auto-rows-[200px]">
         {% for block in welcome_blocks %}
-        <div class="relative rounded-3xl overflow-hidden group shadow-sm
+        <div class="relative rounded-2xl overflow-hidden group shadow-sm
             {% if block.is_large %} col-span-2 row-span-2 md:h-full h-[300px] {% else %} col-span-1 row-span-1 h-[150px] md:h-full {% endif %}">
 
             {% if block.media_type == 'video' %}
                 <video src="{{ block.file.url }}" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"></video>
             {% else %}
-                <img src="{{ block.file.url }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <img src="{{ block.file.url }}" alt="{{ block.title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700">
             {% endif %}
 
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-6">
@@ -57,85 +77,61 @@
 </section>
 {% endif %}
 
-<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-12 gap-4">
+<section class="max-w-7xl mx-auto px-4 py-12 md:py-20" x-data="{ openDirection: null }">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Популярные направления</h2>
-            <p class="text-slate-500 mt-2 text-sm md:text-base">Лучшие предложения, отобранные нами вручную</p>
+            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Куда поехать</span>
+            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Популярные направления</h2>
+            <p class="text-slate-500 mt-2 text-sm md:text-base max-w-2xl">Карточки открываются с кратким сценарием поездки, чтобы не перегружать главную длинными описаниями.</p>
         </div>
-        <a href="/tours" class="text-emerald-600 font-semibold hover:underline">Все туры →</a>
+        <a href="{% url 'tours' %}" class="text-emerald-700 font-semibold hover:text-emerald-800">Все туры →</a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
-        {% for tour in tours %}
-        <div x-data="{ open: false }" class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-slate-100 flex flex-col">
-            <div class="relative h-60 md:h-72 overflow-hidden">
-                {% if tour.main_image %}
-                    <img src="{{ tour.main_image.url }}" alt="{{ tour.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                {% else %}
-                    <div class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">Нет фото</div>
-                {% endif %}
-
-                {% if request.user.is_authenticated %}
-                <form method="post" action="{% url 'toggle_favorite' tour.id %}" class="absolute top-4 right-4 z-10">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" aria-label="Избранное" class="w-10 h-10 rounded-full text-xl border shadow-sm transition flex items-center justify-center {% if tour.id in favorite_tour_ids %}bg-rose-100 text-rose-600 border-rose-200{% else %}bg-white/90 text-slate-700 border-white hover:border-rose-300 hover:text-rose-600{% endif %}">
-                        {% if tour.id in favorite_tour_ids %}&#10084;{% else %}&#9825;{% endif %}
-                    </button>
-                </form>
-                {% else %}
-                <a href="{% url 'profile' %}" aria-label="Избранное" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full text-xl border shadow-sm bg-white/90 text-slate-700 border-white hover:border-rose-300 hover:text-rose-600 transition flex items-center justify-center">
-                    &#9825;
-                </a>
-                {% endif %}
-            </div>
-
-            <div class="p-6 md:p-8 flex flex-col flex-grow">
-                <h3 class="text-xl md:text-2xl font-bold text-slate-900 mb-3">{{ tour.title }}</h3>
-                <p class="text-slate-500 mb-6 line-clamp-3 text-sm flex-grow">
-                    {{ tour.description|truncatechars:150 }}
-                </p>
-
-                <div class="flex items-center justify-between pt-6 border-t border-slate-50">
-                    <div>
-                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Стоимость</span>
-                        <span class="text-xl md:text-2xl font-bold text-emerald-600">{{ tour.price }} ₽</span>
-                    </div>
-                    <button @click="open = true" class="bg-slate-900 text-white px-6 md:px-8 py-3 rounded-2xl font-medium hover:bg-emerald-600 transition shadow-md">
-                        Подробнее
-                    </button>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+        {% for direction in popular_directions %}
+        <button type="button" @click="openDirection = '{{ forloop.counter }}'" class="group relative min-h-[330px] rounded-2xl overflow-hidden text-left shadow-sm border border-slate-100 bg-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+            <img src="{% static direction.image %}" alt="{{ direction.title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/35 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-6 text-white">
+                <h3 class="text-2xl font-black mb-2">{{ direction.title }}</h3>
+                <p class="text-white/82 text-sm leading-relaxed">{{ direction.tagline }}</p>
+                <div class="mt-5 inline-flex items-center text-sm font-bold text-emerald-200">
+                    Подробнее
+                    <span class="ml-2">→</span>
                 </div>
             </div>
+        </button>
 
-            <div x-show="open"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md"
-                style="display: none;"
-                @keydown.escape.window="open = false"
-                x-cloak>
-
-                <div @click.away="open = false" class="bg-white w-full max-w-3xl max-h-[90vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col text-left relative">
-                    <button @click="open = false" class="absolute top-4 right-4 md:top-6 md:right-6 z-[110] bg-black/20 backdrop-blur-xl text-white p-2 rounded-full hover:bg-black/40 transition">
+        <div x-show="openDirection === '{{ forloop.counter }}'"
+             x-transition
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md"
+             style="display: none;"
+             @keydown.escape.window="openDirection = null"
+             x-cloak>
+            <div @click.away="openDirection = null" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+                <div class="relative h-56">
+                    <img src="{% static direction.image %}" alt="{{ direction.title }}" class="w-full h-full object-cover">
+                    <button @click="openDirection = null" class="absolute top-4 right-4 bg-black/35 text-white p-2 rounded-full hover:bg-black/55 transition" aria-label="Закрыть">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                    <div class="overflow-y-auto no-scrollbar">
-                        <div class="relative h-64 md:h-80 shrink-0">
-                            {% if tour.main_image %}
-                                <img src="{{ tour.main_image.url }}" class="w-full h-full object-cover">
-                            {% endif %}
-                        </div>
-                        <div class="p-6 md:p-10">
-                            <h2 class="text-2xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{{ tour.title }}</h2>
-                            <div class="prose prose-slate max-w-none text-slate-600 text-base md:text-lg leading-relaxed">
-                                <p class="whitespace-pre-line">{{ tour.description }}</p>
-                            </div>
-                        </div>
+                </div>
+                <div class="p-6 md:p-8">
+                    <h3 class="text-3xl font-black text-slate-900 mb-3">{{ direction.title }}</h3>
+                    <p class="text-slate-600 leading-relaxed">{{ direction.description }}</p>
+                    <div class="flex flex-wrap gap-2 mt-5">
+                        {% for item in direction.highlights %}
+                            <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">{{ item }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">
+                        <a href="{% url 'tours' %}?category={{ direction.category }}" class="text-center bg-slate-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-emerald-600 transition">
+                            Смотреть туры
+                        </a>
+                        <a href="{% url 'feedback' %}?tour_type={{ direction.tour_type }}" class="text-center bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-emerald-700 transition">
+                            Оставить заявку
+                        </a>
                     </div>
                 </div>
             </div>
@@ -143,4 +139,43 @@
         {% endfor %}
     </div>
 </section>
+
+<section class="bg-white py-12 md:py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="mb-10">
+            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Формат отдыха</span>
+            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Виды туров</h2>
+            <p class="text-slate-500 mt-2 max-w-2xl">Выберите направление по интересу, а детали маршрута согласуем по датам, погоде и составу гостей.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for type_card in tour_type_cards %}
+            <a href="{% url 'tours' %}?category={{ type_card.category }}" class="rounded-2xl bg-slate-50 border border-slate-100 p-6 hover:bg-white hover:shadow-lg transition">
+                <h3 class="text-lg font-black text-slate-900">{{ type_card.title }}</h3>
+                <p class="text-sm text-slate-600 leading-relaxed mt-2">{{ type_card.description }}</p>
+                <span class="inline-flex mt-5 text-sm font-bold text-emerald-700">Подобрать →</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if tours %}
+<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+        <div>
+            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Готовые предложения</span>
+            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Популярные туры</h2>
+            <p class="text-slate-500 mt-2">Коротко о формате, цене и том, что уже входит в поездку.</p>
+        </div>
+        <a href="{% url 'feedback' %}" class="bg-slate-900 text-white px-6 py-3 rounded-full font-bold hover:bg-emerald-600 transition">Оставить заявку</a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for tour in tours %}
+            {% include 'includes/tour_card.html' %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 {% endblock %}

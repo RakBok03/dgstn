@@ -28,9 +28,36 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Tour)
 class TourAdmin(admin.ModelAdmin):
     inlines = [TourPhotoInline]
-    list_display = ("title", "category", "price", "is_group_tour")
+    list_display = ("title", "category", "duration", "trip_format", "price", "is_group_tour")
     list_editable = ("is_group_tour",)
     list_filter = ("category", "is_group_tour")
+    search_fields = ("title", "short_description", "description", "included_items")
+    fieldsets = (
+        (
+            "Основное",
+            {
+                "fields": (
+                    "title",
+                    "category",
+                    "main_image",
+                    "price",
+                    "is_group_tour",
+                    "description",
+                )
+            },
+        ),
+        (
+            "Карточка и продажа",
+            {
+                "fields": (
+                    "short_description",
+                    "duration",
+                    "trip_format",
+                    "included_items",
+                )
+            },
+        ),
+    )
     actions = ["duplicate_tours"]
 
     @admin.display(description="Дублировать выбранные туры")
@@ -50,11 +77,20 @@ class TourAdmin(admin.ModelAdmin):
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ("name", "phone", "user", "tour", "date", "created_at")
-    list_filter = ("tour", "date", "created_at")
+    list_display = ("name", "phone", "user", "tour", "tour_type", "date", "created_at")
+    list_filter = ("tour", "tour_type", "date", "created_at")
     search_fields = ("name", "phone", "comment", "user__username")
     ordering = ("-created_at",)
-    readonly_fields = ("name", "phone", "user", "tour", "date", "comment", "created_at")
+    readonly_fields = (
+        "name",
+        "phone",
+        "user",
+        "tour",
+        "tour_type",
+        "date",
+        "comment",
+        "created_at",
+    )
 
 
 @admin.register(HomePageSettings)

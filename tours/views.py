@@ -16,6 +16,7 @@ from .models import (
     ReviewComment,
     Tour,
     TourFavorite,
+    TOUR_TYPE_CHOICES,
     UserProfile,
     WelcomeBlock,
 )
@@ -23,6 +24,141 @@ from .services import send_tg_notification
 
 MAX_REVIEW_WORDS = 120
 REVIEW_PREVIEW_WORDS = 35
+
+TOUR_CATEGORY_TABS = [
+    {"slug": "jeep-tours", "name": "Джип-туры"},
+    {"slug": "wellness", "name": "Оздоровительные"},
+    {"slug": "one-day", "name": "Однодневные"},
+    {"slug": "multi-day", "name": "Многодневные"},
+    {"slug": "family", "name": "Семейные"},
+    {"slug": "active", "name": "Активный отдых"},
+    {"slug": "combined", "name": "Комбинированные"},
+]
+
+CATEGORY_TO_FEEDBACK_TYPE = {
+    "jeep-tours": "jeep",
+    "wellness": "wellness",
+    "one-day": "one_day",
+    "multi-day": "multi_day",
+    "family": "family",
+    "combined": "unknown",
+    "active": "unknown",
+}
+
+POPULAR_DIRECTIONS = [
+    {
+        "title": "Махачкала",
+        "image": "Главное меню_2.JPG",
+        "tagline": "Столица у Каспия, музеи, Джума-мечеть и панорама Тарки-Тау.",
+        "description": (
+            "Город удобно ставить в начало маршрута: традиционный завтрак, "
+            "исторические и этнографические музеи, прогулка по центру, пляж, "
+            "смотровая Тарки-Тау и вечерняя Махачкала."
+        ),
+        "highlights": ["Музеи и культура", "Тарки-Тау", "Каспийское море"],
+        "category": "one-day",
+        "tour_type": "one_day",
+    },
+    {
+        "title": "Бархан Сары-Кум",
+        "image": "Главный экран_1.jpg",
+        "tagline": "Крупная песчаная дюна рядом с Махачкалой и редкий природный контраст.",
+        "description": (
+            "Сары-Кум часто включают в маршрут к Сулакскому каньону. Здесь "
+            "важно идти по настилам, беречь экосистему и учитывать жару в сезон."
+        ),
+        "highlights": ["Смотровые настилы", "Заповедная территория", "Легенды бархана"],
+        "category": "one-day",
+        "tour_type": "one_day",
+    },
+    {
+        "title": "Главрыба и Сулак",
+        "image": "Комбинированный тур - Джип + Оздоровительный.jpg",
+        "tagline": "Экотуркомплекс на реке Сулак, форель, катера и локации рядом с каньоном.",
+        "description": (
+            "В один день удобно соединить Сары-Кум, Главрыбу, пещеры Нохъо, "
+            "Чиркейскую ГЭС, смотровые Сулакского каньона и водную прогулку."
+        ),
+        "highlights": ["Форель и кухня", "Катера по Сулаку", "Пещеры Нохъо"],
+        "category": "combined",
+        "tour_type": "unknown",
+    },
+]
+
+TOUR_TYPE_CARDS = [
+    {
+        "title": "Природные маршруты",
+        "description": "Каньоны, водопады, горы, бархан и смотровые без лишней спешки.",
+        "category": "one-day",
+    },
+    {
+        "title": "Исторические экскурсии",
+        "description": "Дербент, крепости, аулы, музеи и культура народов Дагестана.",
+        "category": "one-day",
+    },
+    {
+        "title": "Активный отдых",
+        "description": "Джипы, горные тропы, канатные дороги и активности по сезону.",
+        "category": "active",
+    },
+    {
+        "title": "Оздоровительный отдых",
+        "description": "Термальные и минеральные источники с учетом самочувствия гостей.",
+        "category": "wellness",
+    },
+    {
+        "title": "Походы и кемпинг",
+        "description": "Палатки, лошади, квадроциклы или джип-маршруты в горах.",
+        "category": "active",
+    },
+    {
+        "title": "Комбинированные туры",
+        "description": "Горы, море, кухня, мастер-классы и отдых в одном маршруте.",
+        "category": "combined",
+    },
+]
+
+TOUR_INCLUDES = [
+    "Трансфер по маршруту",
+    "Проживание в гостевом доме по договоренности",
+    "Сопровождение гида",
+    "Безопасный маршрут и помощь в дороге",
+    "Питание и национальная кухня, если предусмотрено программой",
+    "Мастер-классы и экскурсии по маршруту",
+]
+
+DAY_ROUTE_EXAMPLE = [
+    ("08:00", "Традиционный завтрак", "Спокойный старт дня и короткий брифинг по маршруту."),
+    ("10:00", "Первая локация", "Смотровая, музей, бархан или горный маршрут по выбранной категории."),
+    ("13:30", "Обед", "Национальная кухня или ресторанный дворик по погоде и логистике."),
+    ("15:00", "Главная точка дня", "Каньон, Дербент, Главрыба, источники или высокогорье."),
+    ("18:30", "Возвращение и ужин", "Вечерняя прогулка, гостевой дом или трансфер к месту проживания."),
+]
+
+ACCENT_TOURS = [
+    {
+        "title": "Оздоровительный тур",
+        "image": "Оздоровительный тур - Все включено.jpg",
+        "description": (
+            "Посещение термальных и минеральных источников, море по желанию, "
+            "Дербент, Сулакский каньон и спокойный ритм поездки."
+        ),
+        "note": "Перед посещением лечебных источников важно учитывать состояние здоровья.",
+        "category": "wellness",
+        "tour_type": "wellness",
+    },
+    {
+        "title": "Джип-туры в горы",
+        "image": "Джип-тур - Все включено.jpg",
+        "description": (
+            "Видовые дороги, высокогорные маршруты, гостевые дома, кухня и "
+            "безопасное сопровождение гида."
+        ),
+        "note": "Маршрут подбирается по сезону, погоде и подготовке группы.",
+        "category": "jeep-tours",
+        "tour_type": "jeep",
+    },
+]
 
 
 def _get_client_ip(request):
@@ -63,6 +199,20 @@ def _favorite_ids_for_user(request):
     )
 
 
+def _category_tabs(categories):
+    fixed_slugs = {item["slug"] for item in TOUR_CATEGORY_TABS}
+    tabs = [{"slug": "", "name": "Все"}] + TOUR_CATEGORY_TABS.copy()
+    for category in categories:
+        if category.slug not in fixed_slugs:
+            tabs.append({"slug": category.slug, "name": category.name})
+    return tabs
+
+
+def _valid_feedback_type(value):
+    allowed = {choice[0] for choice in TOUR_TYPE_CHOICES}
+    return value if value in allowed else ""
+
+
 def _safe_next(next_url: str, fallback: str) -> str:
     if next_url and next_url.startswith("/"):
         return next_url
@@ -71,7 +221,7 @@ def _safe_next(next_url: str, fallback: str) -> str:
 
 def index(request):
     welcome_blocks = WelcomeBlock.objects.all().order_by("order")
-    tours = Tour.objects.all().order_by("-id")[:3]
+    tours = Tour.objects.select_related("category").prefetch_related("photos").order_by("-id")[:3]
     settings = HomePageSettings.objects.first()
     if not settings:
         settings = HomePageSettings.objects.create()
@@ -83,6 +233,8 @@ def index(request):
             "tours": tours,
             "settings": settings,
             "welcome_blocks": welcome_blocks,
+            "popular_directions": POPULAR_DIRECTIONS,
+            "tour_type_cards": TOUR_TYPE_CARDS,
             "favorite_tour_ids": _favorite_ids_for_user(request),
         },
     )
@@ -90,12 +242,14 @@ def index(request):
 
 def tour_list(request):
     category_slug = request.GET.get("category")
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by("name")
 
     if category_slug:
         tours = Tour.objects.filter(category__slug=category_slug)
     else:
         tours = Tour.objects.all()
+
+    tours = tours.select_related("category").prefetch_related("photos").order_by("-id")
 
     return render(
         request,
@@ -103,7 +257,11 @@ def tour_list(request):
         {
             "tours": tours,
             "categories": categories,
+            "category_tabs": _category_tabs(categories),
             "active_category": category_slug,
+            "tour_includes": TOUR_INCLUDES,
+            "day_route_example": DAY_ROUTE_EXAMPLE,
+            "accent_tours": ACCENT_TOURS,
             "favorite_tour_ids": _favorite_ids_for_user(request),
         },
     )
@@ -111,11 +269,14 @@ def tour_list(request):
 
 def feedback_view(request):
     tour_id = request.GET.get("tour_id")
+    selected_type = _valid_feedback_type(request.GET.get("tour_type") or "")
     selected_tour = None
     if tour_id:
-        selected_tour = Tour.objects.filter(id=tour_id).first()
+        selected_tour = Tour.objects.select_related("category").filter(id=tour_id).first()
+        if selected_tour and selected_tour.category and not selected_type:
+            selected_type = CATEGORY_TO_FEEDBACK_TYPE.get(selected_tour.category.slug, "")
 
-    all_tours = Tour.objects.all()
+    all_tours = Tour.objects.all().order_by("title")
 
     prefill_name = ""
     prefill_phone = ""
@@ -133,6 +294,8 @@ def feedback_view(request):
                 {
                     "tours": all_tours,
                     "selected_tour": selected_tour,
+                    "selected_type": selected_type,
+                    "tour_type_choices": TOUR_TYPE_CHOICES,
                     "rate_limit_error": "Слишком много заявок с вашего IP. Попробуйте еще раз через час.",
                     "prefill_name": prefill_name,
                     "prefill_phone": prefill_phone,
@@ -144,6 +307,7 @@ def feedback_view(request):
         date = request.POST.get("date")
         comment = request.POST.get("comment")
         form_tour_id = request.POST.get("tour_id")
+        form_tour_type = _valid_feedback_type(request.POST.get("tour_type") or "")
 
         if request.user.is_authenticated:
             if not name:
@@ -159,6 +323,7 @@ def feedback_view(request):
             phone=phone,
             date=date,
             comment=comment,
+            tour_type=form_tour_type,
             tour_id=form_tour_id if form_tour_id else None,
         )
 
@@ -175,6 +340,8 @@ def feedback_view(request):
         {
             "tours": all_tours,
             "selected_tour": selected_tour,
+            "selected_type": selected_type,
+            "tour_type_choices": TOUR_TYPE_CHOICES,
             "rate_limit_error": None,
             "prefill_name": prefill_name,
             "prefill_phone": prefill_phone,

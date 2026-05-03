@@ -2,6 +2,17 @@
 from django.db import models
 
 
+TOUR_TYPE_CHOICES = (
+    ("jeep", "Джип-тур"),
+    ("wellness", "Оздоровительный"),
+    ("one_day", "Однодневный"),
+    ("multi_day", "Многодневный"),
+    ("family", "Семейный"),
+    ("individual", "Индивидуальный"),
+    ("unknown", "Пока не знаю, нужна консультация"),
+)
+
+
 class Category(models.Model):
     name = models.CharField("Название категории", max_length=100)
     slug = models.SlugField("Слаг (для URL)", unique=True)
@@ -16,7 +27,28 @@ class Category(models.Model):
 
 class Tour(models.Model):
     title = models.CharField("Название тура", max_length=200)
+    short_description = models.CharField(
+        "Короткое описание для карточки",
+        max_length=260,
+        blank=True,
+        default="",
+        help_text="1-2 коротких предложения. Длинное описание оставьте в поле ниже.",
+    )
     description = models.TextField("Описание")
+    duration = models.CharField("Длительность", max_length=80, blank=True, default="")
+    trip_format = models.CharField(
+        "Формат поездки",
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Например: персональный, парный, семейный, компания.",
+    )
+    included_items = models.TextField(
+        "Что входит",
+        blank=True,
+        default="",
+        help_text="Каждый пункт с новой строки. На карточке показываются первые 5 пунктов.",
+    )
     price = models.IntegerField("Цена (руб.)")
     is_group_tour = models.BooleanField("Групповой тур?", default=False)
     main_image = models.ImageField("Главное фото", upload_to="tours/")
@@ -31,6 +63,44 @@ class Tour(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def card_description(self):
+        return self.short_description or self.description
+
+    @property
+    def duration_label(self):
+        return self.duration or "По договоренности"
+
+    @property
+    def format_label(self):
+        if self.trip_format:
+            return self.trip_format
+        if self.is_group_tour:
+            return "Группа или компания"
+        return "Персональный, парный или семейный"
+
+    @property
+    def included_list(self):
+        items = [
+            item.strip(" -•")
+            for item in self.included_items.splitlines()
+            if item.strip(" -•")
+        ]
+        if items:
+            return items[:5]
+
+        defaults = [
+            "Сопровождение гида",
+            "Безопасный маршрут",
+            "Помощь с размещением",
+            "Консультация по маршруту",
+        ]
+        if self.category and self.category.slug == "wellness":
+            defaults.append("Учет самочувствия и противопоказаний")
+        else:
+            defaults.append("Лучшие локации по сезону")
+        return defaults
 
 
 class TourPhoto(models.Model):
@@ -96,6 +166,13 @@ class Feedback(models.Model):
         null=True,
         blank=True,
         verbose_name="Выбранный тур",
+    )
+    tour_type = models.CharField(
+        "Тип тура",
+        max_length=30,
+        choices=TOUR_TYPE_CHOICES,
+        blank=True,
+        default="",
     )
     name = models.CharField("Имя", max_length=100)
     phone = models.CharField("Телефон", max_length=20)

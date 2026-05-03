@@ -1,52 +1,105 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-20">
-    <h2 class="text-3xl font-bold mb-2">Оставить заявку</h2>
-    <p class="text-slate-500 mb-10">Заполните форму, и мы свяжемся с вами в ближайшее время.</p>
+<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-8 md:gap-12 items-start">
+        <div class="space-y-6">
+            <div>
+                <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Заявка на тур</span>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-900 mt-3 mb-4 leading-tight">Подберем маршрут по Дагестану под ваши даты</h1>
+                <p class="text-slate-600 text-base md:text-lg leading-relaxed">
+                    Оставьте контакты и пожелания. Гид свяжется, уточнит состав гостей, темп поездки и предложит безопасный маршрут.
+                </p>
+            </div>
 
-    {% if rate_limit_error %}
-    <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
-        {{ rate_limit_error }}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
+                    <p class="text-sm font-black text-slate-900">1. Выберите интерес</p>
+                    <p class="text-xs text-slate-500 mt-2">Тур, тип отдыха или консультация.</p>
+                </div>
+                <div class="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
+                    <p class="text-sm font-black text-slate-900">2. Оставьте контакты</p>
+                    <p class="text-xs text-slate-500 mt-2">Имя, телефон и желаемая дата.</p>
+                </div>
+                <div class="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
+                    <p class="text-sm font-black text-slate-900">3. Согласуем детали</p>
+                    <p class="text-xs text-slate-500 mt-2">Маршрут, размещение и формат.</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-slate-900 text-white p-6 md:p-8">
+                <h2 class="text-2xl font-black mb-4">Что обсудим перед поездкой</h2>
+                <ul class="space-y-3 text-sm text-slate-300">
+                    <li class="flex gap-3"><span class="text-emerald-400 font-black">✓</span><span>Безопасное сопровождение и реальные дорожные условия.</span></li>
+                    <li class="flex gap-3"><span class="text-emerald-400 font-black">✓</span><span>Помощь с размещением: эконом, комфорт или люкс по договоренности.</span></li>
+                    <li class="flex gap-3"><span class="text-emerald-400 font-black">✓</span><span>Маршрут под пожелания гостей, сезон и темп отдыха.</span></li>
+                    <li class="flex gap-3"><span class="text-emerald-400 font-black">✓</span><span>Для источников учитываем самочувствие и противопоказания.</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-xl p-6 md:p-8">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Оставить заявку</h2>
+            <p class="text-slate-500 mb-7">Заполните форму, и мы свяжемся с вами в ближайшее время.</p>
+
+            {% if rate_limit_error %}
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
+                {{ rate_limit_error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Выберите тур</label>
+                        <select name="tour_id" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white cursor-pointer">
+                            <option value="">Пока нужна консультация</option>
+                            {% for tour in tours %}
+                                <option value="{{ tour.id }}" {% if selected_tour.id == tour.id %}selected{% endif %}>{{ tour.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Тип тура</label>
+                        <select name="tour_type" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white cursor-pointer">
+                            <option value="">Не выбран</option>
+                            {% for value, label in tour_type_choices %}
+                                <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-700">Ваше имя</label>
+                    <input type="text" name="name" required placeholder="Введите имя" value="{{ prefill_name }}" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Телефон</label>
+                        <input type="text" name="phone" required placeholder="+7 (999) 000-00-00" value="{{ prefill_phone }}" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Желаемая дата</label>
+                        <input type="date" name="date" required class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-700">Пожелания к поездке</label>
+                    <textarea name="comment" rows="4" placeholder="Количество гостей, интересы, желаемые места, ограничения по здоровью для источников" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black hover:bg-emerald-600 transition shadow-lg shadow-slate-200">
+                    Отправить заявку
+                </button>
+                <p class="text-xs text-slate-400 text-center">Ответим и поможем выбрать маршрут без навязчивых обещаний и спорных медицинских рекомендаций.</p>
+            </form>
+        </div>
     </div>
-    {% endif %}
-
-    <form method="POST" class="space-y-6">
-        {% csrf_token %}
-
-        <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Выберите тур</label>
-            <select name="tour_id" class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition bg-white appearance-none cursor-pointer">
-                <option value="">Просто консультация</option>
-                {% for tour in tours %}
-                    <option value="{{ tour.id }}" {% if selected_tour.id == tour.id %}selected{% endif %}>{{ tour.title }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Ваше имя</label>
-            <input type="text" name="name" required placeholder="Введите имя" value="{{ prefill_name }}" class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-slate-700">Телефон</label>
-                <input type="text" name="phone" required placeholder="+7 (999) 000-00-00" value="{{ prefill_phone }}" class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
-            </div>
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-slate-700">Желаемая дата</label>
-                <input type="date" name="date" required class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
-            </div>
-        </div>
-
-        <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Ваши пожелания</label>
-            <textarea name="comment" rows="4" class="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none"></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-[#0f172a] text-white py-5 rounded-2xl font-bold hover:bg-emerald-600 transition shadow-lg">
-            Отправить заявку
-        </button>
-    </form>
-</div>
+</section>
 {% endblock %}

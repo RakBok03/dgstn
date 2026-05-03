@@ -1,21 +1,37 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-<section class="max-w-3xl mx-auto px-4 py-16">
-    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 md:p-10 text-center">
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-3">Профиль</h1>
-        <p class="text-slate-600 max-w-xl mx-auto">
-            Войдите или зарегистрируйтесь, чтобы сохранять избранные туры, оставлять отзывы и комментарии,
-            а также видеть отправленные заявки.
-        </p>
-
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a href="{% url 'login' %}?next={% url 'profile' %}" class="w-full text-center bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition">
-                Войти
-            </a>
-            <a href="{% url 'register' %}" class="w-full text-center bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:border-emerald-500 hover:text-emerald-700 transition">
-                Регистрация
-            </a>
+<section class="max-w-5xl mx-auto px-4 py-14 md:py-20">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 md:p-10">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_0.9fr] gap-8 items-center">
+            <div>
+                <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Личный кабинет</span>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-900 mt-3 mb-4">Профиль помогает не потерять выбранные туры</h1>
+                <p class="text-slate-600 leading-relaxed">
+                    После входа здесь будут избранные маршруты, отправленные заявки, ваши отзывы и комментарии. Если пока не хотите регистрироваться, можно сразу оставить заявку на подбор тура.
+                </p>
+                <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="{% url 'login' %}?next={% url 'profile' %}" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-emerald-600 transition">
+                        Войти
+                    </a>
+                    <a href="{% url 'register' %}" class="w-full text-center bg-white border border-slate-200 text-slate-700 py-3.5 rounded-xl font-bold hover:border-emerald-500 hover:text-emerald-700 transition">
+                        Регистрация
+                    </a>
+                </div>
+            </div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-6">
+                <h2 class="text-xl font-black text-slate-900 mb-4">Быстрые действия</h2>
+                <div class="space-y-3">
+                    <a href="{% url 'tours' %}" class="block rounded-xl bg-white border border-slate-100 p-4 hover:border-emerald-300 transition">
+                        <p class="font-bold text-slate-900">Выбрать тур</p>
+                        <p class="text-sm text-slate-500 mt-1">Посмотреть категории и готовые маршруты.</p>
+                    </a>
+                    <a href="{% url 'feedback' %}" class="block rounded-xl bg-white border border-slate-100 p-4 hover:border-emerald-300 transition">
+                        <p class="font-bold text-slate-900">Оставить заявку</p>
+                        <p class="text-sm text-slate-500 mt-1">Получить консультацию без регистрации.</p>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </section>

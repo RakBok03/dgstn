@@ -1,0 +1,152 @@
+<article x-data="{ open: false }" class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-slate-100 flex flex-col">
+    <div class="relative h-56 md:h-64 overflow-hidden">
+        {% if tour.main_image %}
+            <img src="{{ tour.main_image.url }}" alt="{{ tour.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+        {% else %}
+            <div class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">Нет фото</div>
+        {% endif %}
+
+        {% if request.user.is_authenticated %}
+        <form method="post" action="{% url 'toggle_favorite' tour.id %}" class="absolute top-4 right-4 z-10">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" aria-label="Избранное" class="w-10 h-10 rounded-full text-xl border shadow-sm transition flex items-center justify-center {% if tour.id in favorite_tour_ids %}bg-rose-100 text-rose-600 border-rose-200{% else %}bg-white/90 text-slate-700 border-white hover:border-rose-300 hover:text-rose-600{% endif %}">
+                {% if tour.id in favorite_tour_ids %}&#10084;{% else %}&#9825;{% endif %}
+            </button>
+        </form>
+        {% else %}
+        <a href="{% url 'profile' %}" aria-label="Избранное" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full text-xl border shadow-sm bg-white/90 text-slate-700 border-white hover:border-rose-300 hover:text-rose-600 transition flex items-center justify-center">
+            &#9825;
+        </a>
+        {% endif %}
+
+        {% if tour.category %}
+        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-slate-900 shadow-sm">
+            {{ tour.category.name }}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="p-5 md:p-6 flex flex-col flex-grow">
+        <h3 class="text-xl md:text-2xl font-bold text-slate-900 mb-3 leading-tight">{{ tour.title }}</h3>
+        <p class="text-slate-600 mb-5 line-clamp-3 text-sm leading-relaxed flex-grow">
+            {{ tour.card_description|truncatechars:170 }}
+        </p>
+
+        <div class="grid grid-cols-1 gap-2 text-sm text-slate-600 mb-5">
+            <div class="flex items-start gap-2">
+                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <span><strong class="text-slate-900">Длительность:</strong> {{ tour.duration_label }}</span>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <span><strong class="text-slate-900">Формат:</strong> {{ tour.format_label }}</span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <p class="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-3">Что входит</p>
+            <ul class="space-y-2 text-sm text-slate-600">
+                {% for item in tour.included_list %}
+                    <li class="flex items-start gap-2">
+                        <span class="text-emerald-600 font-bold shrink-0">✓</span>
+                        <span>{{ item }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="pt-5 border-t border-slate-100">
+            <div class="flex items-end justify-between gap-4 mb-4">
+                <div>
+                    <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Стоимость</span>
+                    <span class="text-2xl font-bold text-emerald-600">
+                        {{ tour.price }} ₽
+                        {% if tour.is_group_tour %}
+                            <span class="text-sm font-normal text-slate-500">/ чел.</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button @click="open = true" class="bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold hover:bg-emerald-600 transition shadow-md">
+                    Подробнее
+                </button>
+                <a href="{% url 'feedback' %}?tour_id={{ tour.id }}" class="text-center bg-emerald-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition shadow-md shadow-emerald-100">
+                    Забронировать
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md"
+        style="display: none;"
+        @keydown.escape.window="open = false"
+        x-cloak>
+
+        <div @click.away="open = false" class="bg-white w-full max-w-3xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col text-left relative">
+            <button @click="open = false" class="absolute top-4 right-4 z-[110] bg-black/30 backdrop-blur-xl text-white p-2 rounded-full hover:bg-black/50 transition" aria-label="Закрыть">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="overflow-y-auto no-scrollbar">
+                <div class="relative h-64 md:h-80 shrink-0">
+                    {% if tour.main_image %}
+                        <img src="{{ tour.main_image.url }}" alt="{{ tour.title }}" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+
+                <div class="p-6 md:p-10">
+                    <div class="flex flex-wrap gap-2 mb-5">
+                        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">{{ tour.duration_label }}</span>
+                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">{{ tour.format_label }}</span>
+                    </div>
+                    <h2 class="text-2xl md:text-4xl font-bold text-slate-900 mb-5 leading-tight">{{ tour.title }}</h2>
+                    <p class="text-slate-600 text-base md:text-lg leading-relaxed whitespace-pre-line">{{ tour.description }}</p>
+
+                    <div class="mt-8">
+                        <h4 class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-4">В туре предусмотрено</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {% for item in tour.included_list %}
+                                <div class="flex items-start gap-3 rounded-xl bg-slate-50 border border-slate-100 p-4">
+                                    <span class="text-emerald-600 font-bold shrink-0">✓</span>
+                                    <span class="text-sm text-slate-700">{{ item }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% if tour.photos.all %}
+                    <div class="mt-8 md:mt-10">
+                        <h4 class="text-xs md:text-sm uppercase tracking-widest font-bold text-slate-400 mb-4">Галерея тура</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {% for photo in tour.photos.all %}
+                                <div class="aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-100">
+                                    <img src="{{ photo.image.url }}" alt="{{ tour.title }}" class="w-full h-full object-cover hover:scale-110 transition duration-500">
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="p-5 md:p-7 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center bg-slate-50 gap-4">
+                <div class="text-center sm:text-left">
+                    <p class="text-slate-400 text-xs md:text-sm">Стоимость</p>
+                    <span class="text-2xl md:text-3xl font-black text-slate-900">{{ tour.price }} ₽</span>
+                </div>
+                <a href="{% url 'feedback' %}?tour_id={{ tour.id }}" class="w-full sm:w-auto bg-emerald-600 text-white px-8 md:px-12 py-4 rounded-xl font-black hover:bg-emerald-700 transition shadow-xl shadow-emerald-100 text-center uppercase tracking-widest text-xs md:text-sm">
+                    Забронировать тур
+                </a>
+            </div>
+        </div>
+    </div>
+</article>
