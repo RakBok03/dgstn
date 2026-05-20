@@ -1,186 +1,170 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Туры в Дагестан — Сулакский каньон, Дербент и горы | DAG.TOUR{% endblock %}
-{% block meta_description %}Туры в Дагестан, после которых не хочется домой: Сулакский каньон, Дербент, горы, кухня и местные гиды. Подберем маршрут под ваши даты.{% endblock %}
-{% block og_title %}Туры в Дагестан — Сулакский каньон, Дербент и горы | DAG.TOUR{% endblock %}
-{% block og_description %}Туры в Дагестан, после которых не хочется домой: Сулакский каньон, Дербент, горы, кухня и местные гиды. Подберем маршрут под ваши даты.{% endblock %}
+{% block title %}Туры в Дагестан — джип-туры, Сулакский каньон, Дербент и горы | DAG.TOUR{% endblock %}
+{% block meta_description %}Авторские туры по Дагестану для туристов из России: джип-туры, однодневные и многодневные маршруты, Сулакский каньон, Дербент, горы, Каспий и источники.{% endblock %}
+{% block og_title %}Туры в Дагестан — маршруты с местным гидом | DAG.TOUR{% endblock %}
+{% block og_description %}Подберем маршрут по Дагестану под ваши даты: горы, Сулакский каньон, Дербент, Каспий, источники и национальная кухня.{% endblock %}
 
 {% block content %}
-<div class="relative min-h-[640px] md:min-h-[720px] flex items-center overflow-hidden bg-slate-900">
-    <div class="absolute inset-0 z-0">
-        {% if settings.hero_image %}
-            <img src="{{ settings.hero_image.url }}" alt="Горы Дагестана" class="w-full h-full object-cover brightness-[0.48]">
-        {% else %}
-            <img src="{% static 'Главное меню_2.JPG' %}" alt="Горы Дагестана" class="w-full h-full object-cover brightness-[0.48]">
-        {% endif %}
-    </div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-4 py-20 md:py-28 text-white">
-        <div class="max-w-3xl">
-            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/15 backdrop-blur text-white text-xs font-bold uppercase tracking-widest border border-white/20">
-                Туры по Дагестану с гидом
-            </span>
-            <h1 class="text-4xl md:text-7xl font-black mt-6 mb-6 leading-tight">{{ settings.hero_title }}</h1>
-            <p class="text-lg md:text-xl text-white/85 mb-8 max-w-2xl leading-relaxed">{{ settings.hero_subtitle }}</p>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a href="{% url 'tours' %}" class="bg-white text-slate-900 px-8 py-4 rounded-full font-bold hover:bg-emerald-500 hover:text-white transition text-center shadow-xl">
-                    Выбрать тур
-                </a>
-                <a href="{% url 'feedback' %}" class="border border-white/35 backdrop-blur-sm px-8 py-4 rounded-full font-bold hover:bg-white/10 transition text-center">
-                    Получить консультацию
-                </a>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-12 max-w-4xl">
-            <a href="{% url 'tours' %}?category=jeep-tours" class="rounded-2xl bg-white/12 backdrop-blur border border-white/15 p-4 hover:bg-white/18 transition">
-                <p class="text-sm font-bold">Джип-туры в горы</p>
-                <p class="text-xs text-white/70 mt-1">Видовые дороги и безопасный маршрут</p>
-            </a>
-            <a href="{% url 'tours' %}?category=wellness" class="rounded-2xl bg-white/12 backdrop-blur border border-white/15 p-4 hover:bg-white/18 transition">
-                <p class="text-sm font-bold">Оздоровительный отдых</p>
-                <p class="text-xs text-white/70 mt-1">Источники с учетом самочувствия</p>
-            </a>
-            <a href="{% url 'feedback' %}" class="rounded-2xl bg-emerald-500/90 p-4 hover:bg-emerald-500 transition">
-                <p class="text-sm font-bold">Не знаете, что выбрать?</p>
-                <p class="text-xs text-white/85 mt-1">Подберем маршрут под даты и состав</p>
-            </a>
-        </div>
-    </div>
-</div>
-
-{% if welcome_blocks %}
-<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
-    <div class="mb-10">
-        <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Почему выбирают нас</h2>
-        <p class="text-slate-500 mt-2">Безопасные маршруты, местное сопровождение и живое знакомство с Дагестаном.</p>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:auto-rows-[200px]">
-        {% for block in welcome_blocks %}
-        <div class="relative rounded-2xl overflow-hidden group shadow-sm
-            {% if block.is_large %} col-span-2 row-span-2 md:h-full h-[300px] {% else %} col-span-1 row-span-1 h-[150px] md:h-full {% endif %}">
-
-            {% if block.media_type == 'video' %}
-                <video src="{{ block.file.url }}" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"></video>
-            {% else %}
-                <img src="{{ block.file.url }}" alt="{{ block.title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700">
-            {% endif %}
-
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-6">
-                <h3 class="text-white font-bold {% if block.is_large %} text-2xl md:text-4xl {% else %} text-sm md:text-xl {% endif %}">
-                    {{ block.title }}
-                </h3>
-                <p class="text-white/80 {% if block.is_large %} text-base md:text-lg {% else %} text-[10px] md:text-sm {% endif %}">
-                    {{ block.subtitle }}
+<section class="relative overflow-hidden topographic">
+    <div class="max-w-7xl mx-auto px-4 py-10 md:py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-8 md:gap-12 items-center lg:min-h-[620px] py-4 md:py-6">
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 rounded-full bg-[#fffaf0]/80 border border-black/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#0f9f9a]">
+                    Дагестан без шаблонного маршрута
+                </div>
+                <h1 class="text-4xl sm:text-5xl xl:text-6xl font-black text-[#17211d] mt-6 leading-[1.04] max-w-3xl">
+                    Горы, Каспий и аулы в маршруте, который не похож на конвейер
+                </h1>
+                <p class="text-lg md:text-xl text-[#69736d] mt-6 leading-relaxed max-w-2xl">
+                    Джип-туры, однодневные выезды, многодневные программы и спокойные оздоровительные маршруты. Сначала уточняем даты и темп, потом собираем поездку под вас.
                 </p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
 
-<section class="max-w-7xl mx-auto px-4 py-12 md:py-20" x-data="{ openDirection: null }">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-        <div>
-            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Куда поехать</span>
-            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Популярные направления</h2>
-            <p class="text-slate-500 mt-2 text-sm md:text-base max-w-2xl">Карточки открываются с кратким сценарием поездки, чтобы не перегружать главную длинными описаниями.</p>
-        </div>
-        <a href="{% url 'tours' %}" class="text-emerald-700 font-semibold hover:text-emerald-800">Все туры →</a>
-    </div>
+                <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                    <a href="https://t.me/Sadruk_05Tur_Dagestan" target="_blank" rel="noopener" class="text-center telegram-cta px-8 py-4 rounded-xl font-black transition shadow-xl shadow-black/10">
+                        Написать в Telegram
+                    </a>
+                    <a href="{% url 'tours' %}" class="text-center bg-[#fffaf0] border border-black/10 text-[#17211d] px-8 py-4 rounded-xl font-black hover:border-[#0f9f9a] hover:text-[#0f9f9a] transition">
+                        Смотреть маршруты
+                    </a>
+                </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-        {% for direction in popular_directions %}
-        <button type="button" @click="openDirection = '{{ forloop.counter }}'" class="group relative min-h-[330px] rounded-2xl overflow-hidden text-left shadow-sm border border-slate-100 bg-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-200">
-            <img src="{% static direction.image %}" alt="{{ direction.title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/35 to-transparent"></div>
-            <div class="absolute inset-x-0 bottom-0 p-6 text-white">
-                <h3 class="text-2xl font-black mb-2">{{ direction.title }}</h3>
-                <p class="text-white/82 text-sm leading-relaxed">{{ direction.tagline }}</p>
-                <div class="mt-5 inline-flex items-center text-sm font-bold text-emerald-200">
-                    Подробнее
-                    <span class="ml-2">→</span>
+                <div class="grid grid-cols-3 gap-3 mt-10 max-w-2xl">
+                    <a href="#routes" class="soft-panel rounded-2xl p-4 hover:-translate-y-1 transition">
+                        <p class="text-2xl font-black text-[#17211d]">01</p>
+                        <p class="text-xs text-[#69736d] mt-1">Маршруты</p>
+                    </a>
+                    <a href="#formats" class="soft-panel rounded-2xl p-4 hover:-translate-y-1 transition">
+                        <p class="text-2xl font-black text-[#17211d]">02</p>
+                        <p class="text-xs text-[#69736d] mt-1">Форматы</p>
+                    </a>
+                    <a href="#contact" class="soft-panel rounded-2xl p-4 hover:-translate-y-1 transition">
+                        <p class="text-2xl font-black text-[#17211d]">03</p>
+                        <p class="text-xs text-[#69736d] mt-1">Telegram</p>
+                    </a>
                 </div>
             </div>
-        </button>
 
-        <div x-show="openDirection === '{{ forloop.counter }}'"
-             x-transition
-             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md"
-             style="display: none;"
-             @keydown.escape.window="openDirection = null"
-             x-cloak>
-            <div @click.away="openDirection = null" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
-                <div class="relative h-56">
-                    <img src="{% static direction.image %}" alt="{{ direction.title }}" class="w-full h-full object-cover">
-                    <button @click="openDirection = null" class="absolute top-4 right-4 bg-black/35 text-white p-2 rounded-full hover:bg-black/55 transition" aria-label="Закрыть">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+            <div class="relative min-h-[430px] md:min-h-[560px]">
+                <div class="absolute inset-0 surreal-frame shadow-2xl shadow-black/10">
+                    {% if settings.hero_image %}
+                        <img src="{{ settings.hero_image.url }}" alt="Дагестан" class="w-full h-full object-cover">
+                    {% else %}
+                        <img src="{% static 'site/hero-boat-canyon.jpg' %}" alt="Сулакский каньон" class="w-full h-full object-cover">
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#17211d]/70 via-transparent to-transparent"></div>
                 </div>
-                <div class="p-6 md:p-8">
-                    <h3 class="text-3xl font-black text-slate-900 mb-3">{{ direction.title }}</h3>
-                    <p class="text-slate-600 leading-relaxed">{{ direction.description }}</p>
-                    <div class="flex flex-wrap gap-2 mt-5">
-                        {% for item in direction.highlights %}
-                            <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">{{ item }}</span>
-                        {% endfor %}
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">
-                        <a href="{% url 'tours' %}?category={{ direction.category }}" class="text-center bg-slate-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-emerald-600 transition">
-                            Смотреть туры
-                        </a>
-                        <a href="{% url 'feedback' %}?tour_type={{ direction.tour_type }}" class="text-center bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-emerald-700 transition">
-                            Оставить заявку
-                        </a>
-                    </div>
+                <div class="absolute left-4 md:left-6 bottom-5 soft-panel rounded-[24px] p-4 max-w-[280px]">
+                    <p class="text-xs uppercase tracking-widest text-[#0f9f9a] font-black">Маршрут по погоде</p>
+                    <p class="text-xl font-black text-[#17211d] mt-2 leading-tight">Без гонки по точкам</p>
+                    <p class="text-sm text-[#69736d] mt-2 leading-relaxed">День остается насыщенным, но не утомительным.</p>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
 </section>
 
-<section class="bg-white py-12 md:py-20">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="mb-10">
-            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Формат отдыха</span>
-            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Виды туров</h2>
-            <p class="text-slate-500 mt-2 max-w-2xl">Выберите направление по интересу, а детали маршрута согласуем по датам, погоде и составу гостей.</p>
-        </div>
+<section id="formats" class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="max-w-3xl mb-8 md:mb-10">
+        <p class="text-xs uppercase tracking-widest text-[#0f9f9a] font-black">Форматы</p>
+        <h2 class="text-3xl md:text-5xl font-black text-[#17211d] mt-3">Шесть понятных категорий без пустых разделов</h2>
+        <p class="text-[#69736d] mt-4 leading-relaxed">Один маршрут может относиться к нескольким форматам, поэтому в каталоге нет дублей: выбирайте по настроению, длительности или уровню активности.</p>
+    </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for type_card in tour_type_cards %}
-            <a href="{% url 'tours' %}?category={{ type_card.category }}" class="rounded-2xl bg-slate-50 border border-slate-100 p-6 hover:bg-white hover:shadow-lg transition">
-                <h3 class="text-lg font-black text-slate-900">{{ type_card.title }}</h3>
-                <p class="text-sm text-slate-600 leading-relaxed mt-2">{{ type_card.description }}</p>
-                <span class="inline-flex mt-5 text-sm font-bold text-emerald-700">Подобрать →</span>
-            </a>
-            {% endfor %}
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for type_card in tour_type_cards %}
+        <a href="{% url 'tours' %}?category={{ type_card.category }}" class="soft-panel rounded-[28px] p-6 hover:-translate-y-1 transition">
+            <span class="text-sm font-black text-[#0f9f9a]">0{{ forloop.counter }}</span>
+            <h3 class="text-xl font-black text-[#17211d] mt-4">{{ type_card.title }}</h3>
+            <p class="text-sm text-[#69736d] leading-relaxed mt-2">{{ type_card.description }}</p>
+            <span class="inline-flex mt-5 text-sm font-black text-[#17211d]">Смотреть</span>
+        </a>
+        {% endfor %}
     </div>
 </section>
 
 {% if tours %}
-<section class="max-w-7xl mx-auto px-4 py-12 md:py-20">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-        <div>
-            <span class="text-emerald-600 font-bold tracking-widest uppercase text-xs">Готовые предложения</span>
-            <h2 class="text-2xl md:text-4xl font-black text-slate-900 mt-2">Популярные туры</h2>
-            <p class="text-slate-500 mt-2">Коротко о формате, цене и том, что уже входит в поездку.</p>
+<section id="routes" class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-5 mb-8 md:mb-10">
+        <div class="max-w-3xl">
+            <p class="text-xs uppercase tracking-widest text-[#0f9f9a] font-black">Готовые маршруты</p>
+            <h2 class="text-3xl md:text-5xl font-black text-[#17211d] mt-3">Туры, с которых стоит начать выбор</h2>
+            <p class="text-[#69736d] mt-4 leading-relaxed">В карточках уже есть длительность, старт, сложность и ключевые точки. Детали лучше уточнить в Telegram под даты и состав гостей.</p>
         </div>
-        <a href="{% url 'feedback' %}" class="bg-slate-900 text-white px-6 py-3 rounded-full font-bold hover:bg-emerald-600 transition">Оставить заявку</a>
+        <a href="{% url 'tours' %}" class="bg-[#fffaf0] border border-black/10 text-[#17211d] px-6 py-3 rounded-xl font-black hover:border-[#0f9f9a] hover:text-[#0f9f9a] transition">Все туры</a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for tour in tours %}
             {% include 'includes/tour_card.html' %}
         {% endfor %}
     </div>
 </section>
 {% endif %}
+
+<section class="py-12 md:py-20 bg-[#17211d] text-white overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-8 md:gap-12 items-start">
+            <div>
+                <p class="text-xs uppercase tracking-widest text-[#6fd3cf] font-black">Куда ехать</p>
+            <h2 class="text-3xl md:text-4xl font-black mt-3 leading-tight">Три сильных направления для первого диалога</h2>
+                <p class="text-white/60 mt-4 leading-relaxed">Это не отдельные пустые блоки, а быстрые входы в реальные категории каталога.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for direction in popular_directions %}
+                <a href="{% url 'tours' %}?category={{ direction.category }}" class="group relative min-h-[360px] rounded-[28px] overflow-hidden bg-black">
+                    <img src="{% static direction.image %}" alt="{{ direction.title }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <div class="absolute inset-x-0 bottom-0 p-5">
+                        <h3 class="text-2xl font-black">{{ direction.title }}</h3>
+                        <p class="text-white/72 text-sm leading-relaxed mt-2">{{ direction.tagline }}</p>
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            {% for item in direction.highlights %}
+                            <span class="text-[11px] rounded-full bg-white/18 px-3 py-1 text-white">{{ item }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="contact" class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-12 items-center">
+        <div class="surreal-frame min-h-[420px] relative">
+            <img src="{% static 'site/guide-canyon.jpg' %}" alt="Гид в Дагестане" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#17211d]/75 via-transparent to-transparent"></div>
+        </div>
+        <div>
+            <p class="text-xs uppercase tracking-widest text-[#0f9f9a] font-black">Первый контакт</p>
+            <h2 class="text-3xl md:text-5xl font-black text-[#17211d] mt-3">Лучший следующий шаг — короткое сообщение в Telegram</h2>
+            <p class="text-[#69736d] mt-4 leading-relaxed">Напишите даты, количество гостей и что хочется увидеть. В ответ получите понятный маршрут, ориентир по цене и рекомендации по темпу.</p>
+            <div class="space-y-3 mt-7">
+                <div class="soft-panel rounded-2xl p-4">
+                    <p class="font-black text-[#17211d]">1. Даты и состав</p>
+                    <p class="text-sm text-[#69736d] mt-1">Сколько человек, взрослые/дети, откуда старт.</p>
+                </div>
+                <div class="soft-panel rounded-2xl p-4">
+                    <p class="font-black text-[#17211d]">2. Темп поездки</p>
+                    <p class="text-sm text-[#69736d] mt-1">Спокойно, активно, джип, источники или комбинированно.</p>
+                </div>
+                <div class="soft-panel rounded-2xl p-4">
+                    <p class="font-black text-[#17211d]">3. Финальный маршрут</p>
+                    <p class="text-sm text-[#69736d] mt-1">Подтверждаем точки, транспорт, проживание и цену.</p>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                <a href="https://t.me/Sadruk_05Tur_Dagestan" target="_blank" rel="noopener" class="text-center telegram-cta px-8 py-4 rounded-xl font-black transition">
+                    Написать в Telegram
+                </a>
+                <a href="{% url 'feedback' %}" class="text-center bg-[#fffaf0] border border-black/10 text-[#17211d] px-8 py-4 rounded-xl font-black hover:border-[#0f9f9a] hover:text-[#0f9f9a] transition">
+                    Форма заявки
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

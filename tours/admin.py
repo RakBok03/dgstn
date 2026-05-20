@@ -1,5 +1,6 @@
 ﻿from django.contrib import admin
 from django.utils import timezone
+from django.utils.html import format_html
 
 from .models import (
     Category,
@@ -17,62 +18,171 @@ from .models import (
 
 class TourPhotoInline(admin.TabularInline):
     model = TourPhoto
-    extra = 3
+    extra = 1
+    readonly_fields = ("preview",)
+
+    @admin.display(description="Превью")
+    def preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width: 96px; height: 72px; object-fit: cover; border-radius: 8px;" />',
+                obj.image.url,
+            )
+        return "Нет фото"
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "order", "description")
+    list_editable = ("order",)
+    search_fields = ("name", "slug", "description")
     prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Tour)
 class TourAdmin(admin.ModelAdmin):
     inlines = [TourPhotoInline]
-    list_display = ("title", "category", "duration", "trip_format", "price", "is_group_tour")
-    list_editable = ("is_group_tour",)
-    list_filter = ("category", "is_group_tour")
-    search_fields = ("title", "short_description", "description", "included_items")
+    list_display = (
+        "image_preview",
+        "title",
+        "category",
+        "category_badges",
+        "duration",
+        "price",
+        "is_published",
+        "is_featured",
+    )
+    list_editable = ("is_published", "is_featured")
+    list_filter = ("is_published", "is_featured", "category", "categories", "is_group_tour")
+    search_fields = (
+        "title",
+        "short_description",
+        "description",
+        "route_points",
+        "included_items",
+    )
+    filter_horizontal = ("categories",)
+    prepopulated_fields = {"slug": ("title",)}
+    readonly_fields = ("image_preview_large", "created_at", "updated_at")
     fieldsets = (
         (
             "Основное",
             {
                 "fields": (
                     "title",
+                    "slug",
+                    "is_published",
+                    "is_featured",
                     "category",
+                    "categories",
                     "main_image",
+                    "static_image",
+                    "image_preview_large",
                     "price",
                     "is_group_tour",
-                    "description",
                 )
             },
         ),
         (
-            "Карточка и продажа",
+            "Карточка",
             {
                 "fields": (
                     "short_description",
                     "duration",
                     "trip_format",
-                    "included_items",
+                    "group_size",
+                    "start_location",
+                    "difficulty",
+                    "season",
                 )
             },
         ),
+        (
+            "Маршрут и продажи",
+            {
+                "fields": (
+                    "description",
+                    "route_points",
+                    "itinerary",
+                    "included_items",
+                    "not_included_items",
+                    "what_to_take",
+                    "important_notes",
+                )
+            },
+        ),
+        ("Служебное", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
-    actions = ["duplicate_tours"]
+    actions = ["duplicate_tours", "publish_tours", "hide_tours", "mark_featured", "unmark_featured"]
+
+    @admin.display(description="Фото")
+    def image_preview(self, obj):
+        if obj.main_image:
+            return format_html(
+                '<img src="{}" style="width: 72px; height: 52px; object-fit: cover; border-radius: 8px;" />',
+                obj.main_image.url,
+            )
+        if obj.static_image:
+            return format_html(
+                '<span style="display:inline-block; width:72px; padding:6px; border-radius:8px; background:#eef2f7; font-size:11px;">static</span>'
+            )
+        return "Нет"
+
+    @admin.display(description="Превью фото")
+    def image_preview_large(self, obj):
+        if obj and obj.main_image:
+            return format_html(
+                '<img src="{}" style="max-width: 360px; max-height: 220px; object-fit: cover; border-radius: 12px;" />',
+                obj.main_image.url,
+            )
+        if obj and obj.static_image:
+            return format_html(
+                '<div style="padding:12px; border:1px solid #dbe3ea; border-radius:12px;">Static image: <strong>{}</strong></div>',
+                obj.static_image,
+            )
+        return "Загрузите фото или укажите static_image."
+
+    @admin.display(description="Категории")
+    def category_badges(self, obj):
+        names = [category.name for category in obj.category_list]
+        return ", ".join(names) if names else "Не указаны"
 
     @admin.display(description="Дублировать выбранные туры")
     def duplicate_tours(self, request, queryset):
         for obj in queryset:
             original_id = obj.pk
+            original_categories = list(obj.categories.all())
             obj.pk = None
             obj.title = f"{obj.title} (копия)"
+            obj.slug = ""
             obj.save()
+            obj.categories.set(original_categories)
 
             original_photos = TourPhoto.objects.filter(tour_id=original_id)
             for photo in original_photos:
                 TourPhoto.objects.create(tour=obj, image=photo.image)
 
         self.message_user(request, "Выбранные туры успешно продублированы вместе с фото.")
+
+    @admin.action(description="Опубликовать выбранные туры")
+    def publish_tours(self, request, queryset):
+        updated = queryset.update(is_published=True)
+        self.message_user(request, f"Опубликовано туров: {updated}.")
+
+    @admin.action(description="Снять выбранные туры с публикации")
+    def hide_tours(self, request, queryset):
+        updated = queryset.update(is_published=False)
+        self.message_user(request, f"Снято с публикации: {updated}.")
+
+    @admin.action(description="Показывать выбранные туры на главной")
+    def mark_featured(self, request, queryset):
+        updated = queryset.update(is_featured=True)
+        self.message_user(request, f"Добавлено на главную: {updated}.")
+
+    @admin.action(description="Убрать выбранные туры с главной")
+    def unmark_featured(self, request, queryset):
+        updated = queryset.update(is_featured=False)
+        self.message_user(request, f"Убрано с главной: {updated}.")
 
 
 @admin.register(Feedback)

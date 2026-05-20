@@ -2,7 +2,7 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.db.models import F, Prefetch
+from django.db.models import F, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -26,13 +26,12 @@ MAX_REVIEW_WORDS = 120
 REVIEW_PREVIEW_WORDS = 35
 
 TOUR_CATEGORY_TABS = [
-    {"slug": "jeep-tours", "name": "Джип-туры"},
-    {"slug": "wellness", "name": "Оздоровительные"},
-    {"slug": "one-day", "name": "Однодневные"},
-    {"slug": "multi-day", "name": "Многодневные"},
-    {"slug": "family", "name": "Семейные"},
-    {"slug": "active", "name": "Активный отдых"},
-    {"slug": "combined", "name": "Комбинированные"},
+    {"slug": "jeep-tours", "name": "Джип-туры", "hint": "Горы и аулы на внедорожнике"},
+    {"slug": "wellness", "name": "Оздоровительные", "hint": "Мягкий темп, море и источники"},
+    {"slug": "one-day", "name": "Однодневные", "hint": "Сильный маршрут без ночевки"},
+    {"slug": "multi-day", "name": "Многодневные", "hint": "Дагестан без спешки"},
+    {"slug": "active", "name": "Активный отдых", "hint": "Катера, тропы и смотровые"},
+    {"slug": "combined", "name": "Комбинированные", "hint": "Горы, море, история и кухня"},
 ]
 
 CATEGORY_TO_FEEDBACK_TYPE = {
@@ -40,80 +39,78 @@ CATEGORY_TO_FEEDBACK_TYPE = {
     "wellness": "wellness",
     "one-day": "one_day",
     "multi-day": "multi_day",
-    "family": "family",
-    "combined": "unknown",
-    "active": "unknown",
+    "combined": "combined",
+    "active": "active",
 }
 
 POPULAR_DIRECTIONS = [
     {
-        "title": "Махачкала",
-        "image": "Главное меню_2.JPG",
-        "tagline": "Столица у Каспия, музеи, Джума-мечеть и панорама Тарки-Тау.",
+        "title": "Сулакский каньон",
+        "image": "site/sulak-canyon.jpg",
+        "tagline": "Бирюзовая вода, бархан Сарыкум, Нохъо и Чиркейская ГЭС в одном дне.",
         "description": (
-            "Город удобно ставить в начало маршрута: традиционный завтрак, "
-            "исторические и этнографические музеи, прогулка по центру, пляж, "
-            "смотровая Тарки-Тау и вечерняя Махачкала."
+            "Главный природный маршрут для первого знакомства с регионом. "
+            "Его удобно сделать спокойным, джиповым или активным с катером и пещерами Нохъо."
         ),
-        "highlights": ["Музеи и культура", "Тарки-Тау", "Каспийское море"],
+        "highlights": ["Сарыкум", "Нохъо", "Катер по погоде"],
         "category": "one-day",
         "tour_type": "one_day",
     },
     {
-        "title": "Бархан Сары-Кум",
-        "image": "Главный экран_1.jpg",
-        "tagline": "Крупная песчаная дюна рядом с Махачкалой и редкий природный контраст.",
+        "title": "Дербент",
+        "image": "Джип-тур - Все включено.jpg",
+        "tagline": "Крепость Нарын-Кала, старый город, Каспий и экраноплан Лунь.",
         "description": (
-            "Сары-Кум часто включают в маршрут к Сулакскому каньону. Здесь "
-            "важно идти по настилам, беречь экосистему и учитывать жару в сезон."
+            "Исторический юг хорошо работает как однодневный тур или часть многодневной программы. "
+            "Здесь меньше экстрима, больше культуры, прогулок и южной атмосферы."
         ),
-        "highlights": ["Смотровые настилы", "Заповедная территория", "Легенды бархана"],
+        "highlights": ["Нарын-Кала", "Старый город", "Каспий"],
         "category": "one-day",
         "tour_type": "one_day",
     },
     {
-        "title": "Главрыба и Сулак",
-        "image": "Комбинированный тур - Джип + Оздоровительный.jpg",
-        "tagline": "Экотуркомплекс на реке Сулак, форель, катера и локации рядом с каньоном.",
+        "title": "Горные аулы",
+        "image": "site/goor-cliff.jpg",
+        "tagline": "Гоор, Кахиб, Гуниб, Гамсутль и дороги, ради которых берут джип.",
         "description": (
-            "В один день удобно соединить Сары-Кум, Главрыбу, пещеры Нохъо, "
-            "Чиркейскую ГЭС, смотровые Сулакского каньона и водную прогулку."
+            "Маршруты для тех, кто хочет не только известные точки, но и каменные аулы, "
+            "скальные выступы, высокие дороги и больше локального контекста."
         ),
-        "highlights": ["Форель и кухня", "Катера по Сулаку", "Пещеры Нохъо"],
-        "category": "combined",
-        "tour_type": "unknown",
+        "highlights": ["Джип-формат", "Смотровые", "Аулы"],
+        "category": "jeep-tours",
+        "tour_type": "jeep",
     },
 ]
 
 TOUR_TYPE_CARDS = [
     {
-        "title": "Природные маршруты",
-        "description": "Каньоны, водопады, горы, бархан и смотровые без лишней спешки.",
-        "category": "one-day",
+        "title": "Джип-туры",
+        "description": "Высокогорные дороги, аулы, башни и видовые точки с безопасным темпом.",
+        "category": "jeep-tours",
     },
     {
-        "title": "Исторические экскурсии",
-        "description": "Дербент, крепости, аулы, музеи и культура народов Дагестана.",
-        "category": "one-day",
-    },
-    {
-        "title": "Активный отдых",
-        "description": "Джипы, горные тропы, канатные дороги и активности по сезону.",
-        "category": "active",
-    },
-    {
-        "title": "Оздоровительный отдых",
-        "description": "Термальные и минеральные источники с учетом самочувствия гостей.",
+        "title": "Оздоровительные",
+        "description": "Источники, море и спокойные выезды без медицинских обещаний.",
         "category": "wellness",
     },
     {
-        "title": "Походы и кемпинг",
-        "description": "Палатки, лошади, квадроциклы или джип-маршруты в горах.",
+        "title": "Однодневные",
+        "description": "Сулак, Дербент, Гуниб или Хунзах, когда есть всего один день.",
+        "category": "one-day",
+    },
+    {
+        "title": "Многодневные",
+        "description": "Каньон, Дербент, горы, Каспий и проживание в одном маршруте.",
+        "category": "multi-day",
+    },
+    {
+        "title": "Активный отдых",
+        "description": "Катера, тропы, скальные виды и маршруты для гостей, которым нужен драйв.",
         "category": "active",
     },
     {
         "title": "Комбинированные туры",
-        "description": "Горы, море, кухня, мастер-классы и отдых в одном маршруте.",
+        "description": "Горы, море, история, кухня и отдых без выбора только одного формата.",
         "category": "combined",
     },
 ]
@@ -201,11 +198,41 @@ def _favorite_ids_for_user(request):
 
 def _category_tabs(categories):
     fixed_slugs = {item["slug"] for item in TOUR_CATEGORY_TABS}
-    tabs = [{"slug": "", "name": "Все"}] + TOUR_CATEGORY_TABS.copy()
-    for category in categories:
-        if category.slug not in fixed_slugs:
-            tabs.append({"slug": category.slug, "name": category.name})
+    category_map = {category.slug: category for category in categories if category.slug in fixed_slugs}
+    tabs = [
+        {
+            "slug": "",
+            "name": "Все",
+            "hint": "Все опубликованные маршруты",
+            "description": "Все опубликованные маршруты",
+        }
+    ]
+    for item in TOUR_CATEGORY_TABS:
+        category = category_map.get(item["slug"])
+        tabs.append(
+            {
+                **item,
+                "description": category.description if category else item["hint"],
+            }
+        )
     return tabs
+
+
+def _tour_queryset():
+    return (
+        Tour.objects.filter(is_published=True)
+        .select_related("category")
+        .prefetch_related("categories", "photos")
+    )
+
+
+def _category_filter(slug):
+    return Q(category__slug=slug) | Q(categories__slug=slug)
+
+
+def _categories_for_tabs():
+    fixed_slugs = {item["slug"] for item in TOUR_CATEGORY_TABS}
+    return Category.objects.filter(slug__in=fixed_slugs).order_by("order", "name")
 
 
 def _valid_feedback_type(value):
@@ -221,7 +248,9 @@ def _safe_next(next_url: str, fallback: str) -> str:
 
 def index(request):
     welcome_blocks = WelcomeBlock.objects.all().order_by("order")
-    tours = Tour.objects.select_related("category").prefetch_related("photos").order_by("-id")[:3]
+    tours = list(_tour_queryset().filter(is_featured=True).order_by("-id")[:4])
+    if not tours:
+        tours = list(_tour_queryset().order_by("-id")[:4])
     settings = HomePageSettings.objects.first()
     if not settings:
         settings = HomePageSettings.objects.create()
@@ -242,14 +271,14 @@ def index(request):
 
 def tour_list(request):
     category_slug = request.GET.get("category")
-    categories = Category.objects.all().order_by("name")
+    categories = _categories_for_tabs()
 
     if category_slug:
-        tours = Tour.objects.filter(category__slug=category_slug)
+        tours = _tour_queryset().filter(_category_filter(category_slug)).distinct()
     else:
-        tours = Tour.objects.all()
+        tours = _tour_queryset()
 
-    tours = tours.select_related("category").prefetch_related("photos").order_by("-id")
+    tours = tours.order_by("-is_featured", "-id")
 
     return render(
         request,
@@ -267,16 +296,45 @@ def tour_list(request):
     )
 
 
+def tour_detail(request, slug):
+    tour = get_object_or_404(_tour_queryset(), slug=slug)
+    related_filter = Q(categories__in=tour.categories.all())
+    if tour.category_id:
+        related_filter |= Q(category=tour.category) | Q(categories=tour.category)
+    related_tours = (
+        _tour_queryset()
+        .filter(related_filter)
+        .exclude(id=tour.id)
+        .distinct()
+        .order_by("-is_featured", "-id")[:3]
+    )
+    selected_type = ""
+    primary_category = tour.primary_category
+    if primary_category:
+        selected_type = CATEGORY_TO_FEEDBACK_TYPE.get(primary_category.slug, "")
+
+    return render(
+        request,
+        "tour_detail.html",
+        {
+            "tour": tour,
+            "related_tours": related_tours,
+            "selected_type": selected_type,
+            "favorite_tour_ids": _favorite_ids_for_user(request),
+        },
+    )
+
+
 def feedback_view(request):
     tour_id = request.GET.get("tour_id")
     selected_type = _valid_feedback_type(request.GET.get("tour_type") or "")
     selected_tour = None
     if tour_id:
-        selected_tour = Tour.objects.select_related("category").filter(id=tour_id).first()
+        selected_tour = _tour_queryset().filter(id=tour_id).first()
         if selected_tour and selected_tour.category and not selected_type:
             selected_type = CATEGORY_TO_FEEDBACK_TYPE.get(selected_tour.category.slug, "")
 
-    all_tours = Tour.objects.all().order_by("title")
+    all_tours = _tour_queryset().order_by("title")
 
     prefill_name = ""
     prefill_phone = ""

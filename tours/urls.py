@@ -6,6 +6,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("profile/", views.profile_view, name="profile"),
     path("tours/", views.tour_list, name="tours"),
+    path("tours/<slug:slug>/", views.tour_detail, name="tour_detail"),
     path("tours/<int:tour_id>/favorite/", views.toggle_favorite, name="toggle_favorite"),
     path("reviews/", views.reviews, name="reviews"),
     path("reviews/<int:review_id>/like/", views.like_review, name="like_review"),

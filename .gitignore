@@ -2,6 +2,11 @@
 __pycache__/
 *.pyc
 db.sqlite3
+_codex_check.sqlite3
+_codex_check.sqlite3-journal
+runserver.out
+runserver.err
+_media_import/
 media/
 static/
 venv/
