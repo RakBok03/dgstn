@@ -402,6 +402,7 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ("tours", "0010_tour_sales_fields_feedback_tour_type"),
